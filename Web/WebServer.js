@@ -58,17 +58,17 @@ app.set("view engine", "ejs");
 
 const findQueryUser = (query, list) => {
 	let usr = list.get(query);
-	if(!usr) {
-		const usernameQuery = query.substring(0, query.lastIndexOf("#")>-1 ? query.lastIndexOf("#") : query.length);
-		const discriminatorQuery = query.indexOf("#")>-1 ? query.substring(query.lastIndexOf("#")+1) : "";
+	if (!usr) {
+		const usernameQuery = query.substring(0, query.lastIndexOf("#") > -1 ? query.lastIndexOf("#") : query.length);
+		const discriminatorQuery = query.indexOf("#") > -1 ? query.substring(query.lastIndexOf("#") + 1) : "";
 		const usrs = list.filter(a => {
-			return (a.user || a).username==usernameQuery;
+			return (a.user || a).username == usernameQuery;
 		});
-		if(discriminatorQuery) {
+		if (discriminatorQuery) {
 			usr = usrs.find(a => {
-				return (a.user || a).discriminator==discriminatorQuery;
+				return (a.user || a).discriminator == discriminatorQuery;
 			});
-		} else if(usrs.length>0) {
+		} else if (usrs.length > 0) {
 			usr = usrs[0];
 		}
 	}
@@ -77,7 +77,7 @@ const findQueryUser = (query, list) => {
 
 const getUserList = list => {
 	return list.filter(usr => {
-		return usr.bot!=true;
+		return usr.bot != true;
 	}).map(usr => {
 		return `${usr.username}#${usr.discriminator}`;
 	}).sort();
@@ -85,7 +85,7 @@ const getUserList = list => {
 
 const getChannelData = (svr, type) => {
 	return svr.channels.filter(ch => {
-		return ch.type==(type || 0);
+		return ch.type == (type || 0);
 	}).map(ch => {
 		return {
 			name: ch.name,
@@ -99,7 +99,7 @@ const getChannelData = (svr, type) => {
 
 const getRoleData = svr => {
 	return svr.roles.filter(role => {
-		return role.name!="@everyone" && role.name.indexOf("color-")!=0;
+		return role.name != "@everyone" && role.name.indexOf("color-") != 0;
 	}).map(role => {
 		const color = role.color.toString(16);
 		return {
@@ -122,7 +122,7 @@ const getAuthUser = user => {
 };
 
 const getRoundedUptime = uptime => {
-	return uptime>86400 ? (`${Math.floor(uptime/86400)}d`) : (`${Math.floor(uptime/3600)}h`);
+	return uptime > 86400 ? (`${Math.floor(uptime / 86400)}d`) : (`${Math.floor(uptime / 3600)}h`);
 };
 
 // Setup the web server
@@ -164,7 +164,7 @@ module.exports = (bot, db, auth, config, winston) => {
 	});
 
 	// Server public dir if necessary
-	if(config.serve_static) {
+	if (config.serve_static) {
 		app.use("/static", express.static(`${__dirname}/public`));
 	}
 
@@ -172,7 +172,7 @@ module.exports = (bot, db, auth, config, winston) => {
 	app.use((error, req, res, next) => { // eslint-disable-line no-unused-vars
 		winston.error(error);
 		res.sendStatus(500);
-		res.render("pages/error.ejs", {error});
+		res.render("pages/error.ejs", { error });
 	});
 
 	// Open web interface
@@ -197,8 +197,8 @@ module.exports = (bot, db, auth, config, winston) => {
 			authUser: req.isAuthenticated() ? getAuthUser(req.user) : null,
 			bannerMessage: config.homepage_message_html,
 			rawServerCount: bot.guilds.size,
-			roundedServerCount: Math.floor(bot.guilds.size/100)*100,
-			rawUserCount: `${Math.floor(bot.users.size/1000)}K`,
+			roundedServerCount: Math.floor(bot.guilds.size / 100) * 100,
+			rawUserCount: `${Math.floor(bot.users.size / 1000)}K`,
 			rawUptime: moment.duration(uptime, "seconds").humanize(),
 			roundedUptime: getRoundedUptime(uptime)
 		});
@@ -224,7 +224,7 @@ module.exports = (bot, db, auth, config, winston) => {
 	const getServerData = serverDocument => {
 		let data;
 		const svr = bot.guilds.get(serverDocument._id);
-		if(svr) {
+		if (svr) {
 			const owner = svr.members.get(svr.ownerID);
 			data = {
 				name: svr.name,
@@ -239,7 +239,7 @@ module.exports = (bot, db, auth, config, winston) => {
 				members: svr.members.size,
 				messages: serverDocument.messages_today,
 				rawCreated: moment(svr.createdAt).format(config.moment_date_format),
-				relativeCreated: Math.ceil((Date.now() - svr.createdAt)/86400000),
+				relativeCreated: Math.ceil((Date.now() - svr.createdAt) / 86400000),
 				command_prefix: bot.getCommandPrefix(svr, serverDocument),
 				category: serverDocument.config.public_data.server_listing.category,
 				description: serverDocument.config.public_data.server_listing.isEnabled ? (xssFilters.inHTMLData(md.makeHtml(serverDocument.config.public_data.server_listing.description || "No description provided."))) : null,
@@ -252,11 +252,11 @@ module.exports = (bot, db, auth, config, winston) => {
 		const params = {
 			"config.public_data.isShown": true
 		};
-		if(req.query.id) {
+		if (req.query.id) {
 			params._id = req.query.id;
 		}
 		db.servers.find(params).skip(req.query.start ? parseInt(req.query.start) : 0).limit(req.query.count ? parseInt(req.query.count) : bot.guilds.size).exec((err, serverDocuments) => {
-			if(!err && serverDocuments) {
+			if (!err && serverDocuments) {
 				const data = serverDocuments.map(serverDocument => {
 					return getServerData(serverDocument) || serverDocument._id;
 				});
@@ -288,10 +288,10 @@ module.exports = (bot, db, auth, config, winston) => {
 			rawLastSeen: userDocument.last_seen ? moment(userDocument.last_seen).format(config.moment_date_format) : null,
 			mutualServerCount: mutualServers.length,
 			pastNameCount: (userDocument.past_names || {}).length || 0,
-			isAfk: userDocument.afk_message!=null && userDocument.afk_message!="",
+			isAfk: userDocument.afk_message != null && userDocument.afk_message != "",
 			mutualServers: []
 		};
-		switch(userProfile.status) {
+		switch (userProfile.status) {
 			case "online":
 				userProfile.statusColor = "is-success";
 				break;
@@ -304,13 +304,13 @@ module.exports = (bot, db, auth, config, winston) => {
 				userProfile.statusColor = "is-dark";
 				break;
 		}
-		if(userDocument.isProfilePublic) {
+		if (userDocument.isProfilePublic) {
 			let profileFields;
-			if(userDocument.profile_fields) {
+			if (userDocument.profile_fields) {
 				profileFields = {};
-				for(const key in userDocument.profile_fields) {
+				for (const key in userDocument.profile_fields) {
 					profileFields[key] = md.makeHtml(userDocument.profile_fields[key]);
-					profileFields[key] = profileFields[key].substring(3, profileFields[key].length-4);
+					profileFields[key] = profileFields[key].substring(3, profileFields[key].length - 4);
 				}
 			}
 			userProfile.profileFields = profileFields;
@@ -329,9 +329,9 @@ module.exports = (bot, db, auth, config, winston) => {
 	};
 	app.get("/api/users", (req, res) => {
 		const usr = bot.users.get(req.query.id);
-		if(usr) {
-			db.users.findOrCreate({_id: usr.id}, (err, userDocument) => {
-				if(err || !userDocument) {
+		if (usr) {
+			db.users.findOrCreate({ _id: usr.id }, (err, userDocument) => {
+				if (err || !userDocument) {
 					userDocument = {};
 				}
 				res.json(getUserData(usr, userDocument));
@@ -343,7 +343,7 @@ module.exports = (bot, db, auth, config, winston) => {
 	const getExtensionData = galleryDocument => {
 		const owner = bot.users.get(galleryDocument.owner_id) || {};
 		let typeIcon, typeDescription;
-		switch(galleryDocument.type) {
+		switch (galleryDocument.type) {
 			case "command":
 				typeIcon = "magic";
 				typeDescription = galleryDocument.key;
@@ -379,27 +379,27 @@ module.exports = (bot, db, auth, config, winston) => {
 	};
 	app.get("/api/extensions", (req, res) => {
 		const params = {};
-		if(req.query.id) {
+		if (req.query.id) {
 			params._id = req.query.id;
 		}
-		if(req.query.name) {
+		if (req.query.name) {
 			params.name = req.query.name;
 		}
-		if(req.query.type) {
+		if (req.query.type) {
 			params.type = req.query.type;
 		}
-		if(req.query.status) {
+		if (req.query.status) {
 			params.state = req.query.status;
 		}
-		if(req.query.owner) {
+		if (req.query.owner) {
 			params.owner_id = req.query.owner;
 		}
 		db.gallery.count(params, (err, rawCount) => {
-			if(!err || rawCount==null) {
+			if (!err || rawCount == null) {
 				rawCount = 0;
 			}
 			db.gallery.find(params).skip(req.query.start ? parseInt(req.query.start) : 0).limit(req.query.count ? parseInt(req.query.count) : rawCount).exec((err, galleryDocuments) => {
-				if(!err && galleryDocuments) {
+				if (!err && galleryDocuments) {
 					const data = galleryDocuments.map(galleryDocument => {
 						return getExtensionData(galleryDocument);
 					});
@@ -427,7 +427,7 @@ module.exports = (bot, db, auth, config, winston) => {
 				active: {
 					$sum: {
 						$cond: [
-							{$gt: ["$messages_today", 0]},
+							{ $gt: ["$messages_today", 0] },
 							1,
 							0
 						]
@@ -437,7 +437,7 @@ module.exports = (bot, db, auth, config, winston) => {
 		}, (err, result) => {
 			let messageCount = 0;
 			let activeServers = bot.guilds.size;
-			if(!err && result) {
+			if (!err && result) {
 				messageCount = result[0].total;
 				activeServers = result[0].active;
 			}
@@ -450,45 +450,45 @@ module.exports = (bot, db, auth, config, winston) => {
 					totalMessageCount: messageCount,
 					numActiveServers: activeServers,
 					activeSearchQuery: req.query.q,
-					mode: req.path.substring(req.path.lastIndexOf("/")+1),
+					mode: req.path.substring(req.path.lastIndexOf("/") + 1),
 					data
 				});
 			};
 
-			if(req.path=="/activity/servers") {
-				if(!req.query.q) {
+			if (req.path == "/activity/servers") {
+				if (!req.query.q) {
 					req.query.q = "";
 				}
 				let count;
-				if(!req.query.count || isNaN(req.query.count)) {
+				if (!req.query.count || isNaN(req.query.count)) {
 					count = 16;
 				} else {
 					count = parseInt(req.query.count) || bot.guilds.size;
 				}
 				let page;
-				if(!req.query.page || isNaN(req.query.page)) {
+				if (!req.query.page || isNaN(req.query.page)) {
 					page = 1;
 				} else {
 					page = parseInt(req.query.page);
 				}
-				if(!req.query.sort) {
+				if (!req.query.sort) {
 					req.query.sort = "messages-des";
 				}
-				if(!req.query.category) {
+				if (!req.query.category) {
 					req.query.category = "All";
 				}
-				if(!req.query.publiconly) {
+				if (!req.query.publiconly) {
 					req.query.publiconly = false;
 				}
 
 				const matchCriteria = {
 					"config.public_data.isShown": true
 				};
-				if(req.query.q) {
+				if (req.query.q) {
 					const query = req.query.q.toLowerCase();
 					matchCriteria._id = {
 						$in: bot.guilds.filter(svr => {
-							return svr.name.toLowerCase().indexOf(query)>-1 || svr.id==query;
+							return svr.name.toLowerCase().indexOf(query) > -1 || svr.id == query;
 						}).map(svr => {
 							return svr.id;
 						})
@@ -498,15 +498,15 @@ module.exports = (bot, db, auth, config, winston) => {
 						$in: Array.from(bot.guilds.keys())
 					};
 				}
-				if(req.query.category!="All") {
+				if (req.query.category != "All") {
 					matchCriteria["config.public_data.server_listing.category"] = req.query.category;
 				}
-				if(req.query.publiconly=="true") {
+				if (req.query.publiconly == "true") {
 					matchCriteria["config.public_data.server_listing.isEnabled"] = true;
 				}
 
 				let sortParams;
-				switch(req.query.sort) {
+				switch (req.query.sort) {
 					case "members-asc":
 						sortParams = {
 							"member_count": 1
@@ -531,7 +531,7 @@ module.exports = (bot, db, auth, config, winston) => {
 				}
 
 				db.servers.count(matchCriteria, (err, rawCount) => {
-					if(err || rawCount==null) {
+					if (err || rawCount == null) {
 						rawCount = bot.guilds.size;
 					}
 					db.servers.aggregate([
@@ -559,21 +559,21 @@ module.exports = (bot, db, auth, config, winston) => {
 						}
 					], (err, serverDocuments) => {
 						let serverData = [];
-						if(!err && serverDocuments) {
+						if (!err && serverDocuments) {
 							serverData = serverDocuments.map(serverDocument => {
 								return getServerData(serverDocument);
 							});
 						}
 
 						let pageTitle = "Servers";
-						if(req.query.q) {
+						if (req.query.q) {
 							pageTitle = `Search for server "${req.query.q}"`;
 						}
 						renderPage({
 							pageTitle,
-							itemsPerPage: req.query.count==0 ? "0" : count.toString(),
+							itemsPerPage: req.query.count == 0 ? "0" : count.toString(),
 							currentPage: page,
-							numPages: Math.ceil(rawCount/(count==0 ? rawCount : count)),
+							numPages: Math.ceil(rawCount / (count == 0 ? rawCount : count)),
 							serverData,
 							selectedCategory: req.query.category,
 							isPublicOnly: req.query.publiconly,
@@ -581,16 +581,16 @@ module.exports = (bot, db, auth, config, winston) => {
 						});
 					});
 				});
-			} else if(req.path=="/activity/users") {
-				if(!req.query.q) {
+			} else if (req.path == "/activity/users") {
+				if (!req.query.q) {
 					req.query.q = "";
 				}
 
-				if(req.query.q) {
+				if (req.query.q) {
 					const usr = findQueryUser(req.query.q, bot.users);
-					if(usr) {
-						db.users.findOrCreate({_id: usr.id}, (err, userDocument) => {
-							if(err || !userDocument) {
+					if (usr) {
+						db.users.findOrCreate({ _id: usr.id }, (err, userDocument) => {
+							if (err || !userDocument) {
 								userDocument = {};
 							}
 							const userProfile = getUserData(usr, userDocument);
@@ -600,7 +600,7 @@ module.exports = (bot, db, auth, config, winston) => {
 							});
 						});
 					} else {
-						renderPage({pageTitle: `Search for user "${req.query.q}"`});
+						renderPage({ pageTitle: `Search for user "${req.query.q}"` });
 					}
 				} else {
 					db.users.aggregate({
@@ -614,7 +614,7 @@ module.exports = (bot, db, auth, config, winston) => {
 							publicProfilesCount: {
 								$sum: {
 									$cond: [
-										{$ne: ["$isProfilePublic", false]},
+										{ $ne: ["$isProfilePublic", false] },
 										1,
 										0
 									]
@@ -630,7 +630,7 @@ module.exports = (bot, db, auth, config, winston) => {
 						let totalPoints = 0;
 						let publicProfilesCount = 0;
 						let reminderCount = 0;
-						if(!err && result) {
+						if (!err && result) {
 							totalPoints = result[0].totalPoints;
 							publicProfilesCount = result[0].publicProfilesCount;
 							reminderCount = result[0].reminderCount;
@@ -664,22 +664,22 @@ module.exports = (bot, db, auth, config, winston) => {
 
 	// Check authentication for console
 	const checkAuth = (req, res, next) => {
-		if(req.isAuthenticated()) {
+		if (req.isAuthenticated()) {
 			const usr = bot.users.get(req.user.id);
-			if(usr) {
-				if(req.query.svrid=="maintainer") {
-					if(config.maintainers.indexOf(req.user.id)>-1) {
+			if (usr) {
+				if (req.query.svrid == "maintainer") {
+					if (config.maintainers.indexOf(req.user.id) > -1) {
 						next(usr);
 					} else {
 						res.redirect("/dashboard");
 					}
 				} else {
 					const svr = bot.guilds.get(req.query.svrid);
-					if(svr && usr) {
-						db.servers.findOne({_id: svr.id}, (err, serverDocument) => {
-							if(!err && serverDocument) {
+					if (svr && usr) {
+						db.servers.findOne({ _id: svr.id }, (err, serverDocument) => {
+							if (!err && serverDocument) {
 								const member = svr.members.get(usr.id);
-								if(bot.getUserBotAdmin(svr, serverDocument, member)>=3) {
+								if (bot.getUserBotAdmin(svr, serverDocument, member) >= 3) {
 									next(member, svr, serverDocument);
 								} else {
 									res.redirect("/dashboard");
@@ -702,7 +702,7 @@ module.exports = (bot, db, auth, config, winston) => {
 
 	// User list provider for typeahead
 	app.get("/userlist", (req, res) => {
-		if(req.query.svrid) {
+		if (req.query.svrid) {
 			checkAuth(req, res, (usr, svr) => {
 				res.json(getUserList(svr.members.map(member => {
 					return member.user;
@@ -718,16 +718,16 @@ module.exports = (bot, db, auth, config, winston) => {
 		res.redirect("/extensions/gallery");
 	});
 	app.post("/extensions", (req, res) => {
-		if(req.isAuthenticated()) {
-			if(req.query.extid && req.body.action) {
-				if(["accept", "feature", "reject", "remove"].indexOf(req.body.action)>-1 && config.maintainers.indexOf(req.user.id)==-1) {
+		if (req.isAuthenticated()) {
+			if (req.query.extid && req.body.action) {
+				if (["accept", "feature", "reject", "remove"].indexOf(req.body.action) > -1 && config.maintainers.indexOf(req.user.id) == -1) {
 					res.sendStatus(403);
 					return;
 				}
 
 				const getGalleryDocument = callback => {
-					db.gallery.findOne({_id: req.query.extid}, (err, galleryDocument) => {
-						if(!err && galleryDocument) {
+					db.gallery.findOne({ _id: req.query.extid }, (err, galleryDocument) => {
+						if (!err && galleryDocument) {
 							callback(galleryDocument);
 						} else {
 							res.sendStatus(500);
@@ -735,8 +735,8 @@ module.exports = (bot, db, auth, config, winston) => {
 					});
 				};
 				const getUserDocument = callback => {
-					db.users.findOrCreate({_id: req.user.id}, (err, userDocument) => {
-						if(!err && userDocument) {
+					db.users.findOrCreate({ _id: req.user.id }, (err, userDocument) => {
+						if (!err && userDocument) {
 							callback(userDocument);
 						} else {
 							res.sendStatus(500);
@@ -745,19 +745,19 @@ module.exports = (bot, db, auth, config, winston) => {
 				};
 				const messageOwner = (usrid, message) => {
 					const usr = bot.users.get(usrid);
-					if(usr) {
+					if (usr) {
 						usr.getDMChannel().then(ch => {
 							ch.createMessage(message);
 						}).catch();
 					}
 				};
 
-				switch(req.body.action) {
+				switch (req.body.action) {
 					case "upvote":
 						getGalleryDocument(galleryDocument => {
 							getUserDocument(userDocument => {
-								const vote = userDocument.upvoted_gallery_extensions.indexOf(galleryDocument._id)==-1 ? 1 : -1;
-								if(vote==1) {
+								const vote = userDocument.upvoted_gallery_extensions.indexOf(galleryDocument._id) == -1 ? 1 : -1;
+								if (vote == 1) {
 									userDocument.upvoted_gallery_extensions.push(galleryDocument._id);
 								} else {
 									userDocument.upvoted_gallery_extensions.splice(userDocument.upvoted_gallery_extensions.indexOf(galleryDocument._id), 1);
@@ -765,10 +765,10 @@ module.exports = (bot, db, auth, config, winston) => {
 								galleryDocument.points += vote;
 								galleryDocument.save(() => {
 									userDocument.save(() => {
-										db.users.findOrCreate({_id: galleryDocument.owner_id}, (err, ownerUserDocument) => {
-											if(!err && ownerUserDocument) {
+										db.users.findOrCreate({ _id: galleryDocument.owner_id }, (err, ownerUserDocument) => {
+											if (!err && ownerUserDocument) {
 												ownerUserDocument.points += vote * 10;
-												ownerUserDocument.save(() => {});
+												ownerUserDocument.save(() => { });
 											}
 											res.sendStatus(200);
 										});
@@ -790,12 +790,12 @@ module.exports = (bot, db, auth, config, winston) => {
 										}
 									}
 								}, (err, serverDocuments) => {
-									if(!err && serverDocuments) {
+									if (!err && serverDocuments) {
 										serverDocuments.forEach(serverDocument => {
 											serverDocument.extensions.id(galleryDocument._id).updates_available++;
 											serverDocument.save(err => {
-												if(err) {
-													winston.error("Failed to save server data for extension update", {svrid: serverDocument._id}, err);
+												if (err) {
+													winston.error("Failed to save server data for extension update", { svrid: serverDocument._id }, err);
 												}
 											});
 										});
@@ -806,10 +806,10 @@ module.exports = (bot, db, auth, config, winston) => {
 						break;
 					case "feature":
 						getGalleryDocument(galleryDocument => {
-							if(!galleryDocument.featured) {
+							if (!galleryDocument.featured) {
 								messageOwner(galleryDocument.owner_id, `Your extension ${galleryDocument.name} has been featured on the AwesomeBot extension gallery! 🌟 ${config.hosting_url}extensions/gallery?id=${galleryDocument._id}`);
 							}
-							galleryDocument.featured = galleryDocument.featured!=true;
+							galleryDocument.featured = galleryDocument.featured != true;
 							galleryDocument.save(err => {
 								res.sendStatus(err ? 500 : 200);
 							});
@@ -818,11 +818,11 @@ module.exports = (bot, db, auth, config, winston) => {
 					case "reject":
 					case "remove":
 						getGalleryDocument(galleryDocument => {
-							messageOwner(galleryDocument.owner_id, `Your extension ${galleryDocument.name} has been ${req.body.action}${req.body.action=="reject" ? "e" : ""}d from the AwesomeBot extension gallery for the following reason:\`\`\`${req.body.reason}\`\`\``);
-							db.users.findOrCreate({_id: galleryDocument.owner_id}, (err, ownerUserDocument) => {
-								if(!err && ownerUserDocument) {
+							messageOwner(galleryDocument.owner_id, `Your extension ${galleryDocument.name} has been ${req.body.action}${req.body.action == "reject" ? "e" : ""}d from the AwesomeBot extension gallery for the following reason:\`\`\`${req.body.reason}\`\`\``);
+							db.users.findOrCreate({ _id: galleryDocument.owner_id }, (err, ownerUserDocument) => {
+								if (!err && ownerUserDocument) {
 									ownerUserDocument.points -= galleryDocument.points * 10;
-									ownerUserDocument.save(() => {});
+									ownerUserDocument.save(() => { });
 								}
 								galleryDocument.state = "saved";
 								galleryDocument.save(err => {
@@ -840,14 +840,14 @@ module.exports = (bot, db, auth, config, winston) => {
 		}
 	});
 	app.get("/extension.abext", (req, res) => {
-		if(req.query.extid) {
+		if (req.query.extid) {
 			try {
 				res.set({
 					"Content-Disposition": `${"attachment; filename='" + "gallery-"}${req.query.extid}.abext` + "'",
 					"Content-Type": "text/javascript"
 				});
 				res.sendFile(path.resolve(`${__dirname}/../Extensions/gallery-${req.query.extid}.abext`));
-			} catch(err) {
+			} catch (err) {
 				res.sendStatus(500);
 			}
 		} else {
@@ -856,33 +856,33 @@ module.exports = (bot, db, auth, config, winston) => {
 	});
 	app.get("/extensions/(|gallery|queue)", (req, res) => {
 		let count;
-		if(!req.query.count) {
+		if (!req.query.count) {
 			count = 18;
 		} else {
 			count = parseInt(req.query.count);
 		}
 		let page;
-		if(!req.query.page) {
+		if (!req.query.page) {
 			page = 1;
 		} else {
 			page = parseInt(req.query.page);
 		}
 
 		const renderPage = (upvoted_gallery_extensions, serverData) => {
-			const extensionState = req.path.substring(req.path.lastIndexOf("/")+1);
+			const extensionState = req.path.substring(req.path.lastIndexOf("/") + 1);
 			db.gallery.count({
 				state: extensionState
 			}, (err, rawCount) => {
-				if(err || rawCount==null) {
+				if (err || rawCount == null) {
 					rawCount = 0;
 				}
 
 				const matchCriteria = {
 					"state": extensionState
 				};
-				if(req.query.id) {
+				if (req.query.id) {
 					matchCriteria._id = req.query.id;
-				} else if(req.query.q) {
+				} else if (req.query.q) {
 					matchCriteria.$text = {
 						$search: req.query.q
 					};
@@ -894,7 +894,7 @@ module.exports = (bot, db, auth, config, winston) => {
 
 					res.render("pages/extensions.ejs", {
 						authUser: req.isAuthenticated() ? getAuthUser(req.user) : null,
-						isMaintainer: req.isAuthenticated() ? config.maintainers.indexOf(req.user.id)>-1 : false,
+						isMaintainer: req.isAuthenticated() ? config.maintainers.indexOf(req.user.id) > -1 : false,
 						pageTitle,
 						serverData,
 						activeSearchQuery: req.query.id || req.query.q,
@@ -902,7 +902,7 @@ module.exports = (bot, db, auth, config, winston) => {
 						rawCount,
 						itemsPerPage: req.query.count,
 						currentPage: page,
-						numPages: Math.ceil(rawCount/(count==0 ? rawCount : count)),
+						numPages: Math.ceil(rawCount / (count == 0 ? rawCount : count)),
 						extensions: extensionData,
 						upvotedData: upvoted_gallery_extensions
 					});
@@ -910,17 +910,17 @@ module.exports = (bot, db, auth, config, winston) => {
 			});
 		};
 
-		if(req.isAuthenticated()) {
+		if (req.isAuthenticated()) {
 			const serverData = [];
 			const usr = bot.users.get(req.user.id);
 			const addServerData = (i, callback) => {
-				if(i<req.user.guilds.length) {
+				if (i < req.user.guilds.length) {
 					const svr = bot.guilds.get(req.user.guilds[i].id);
-					if(svr && usr) {
-						db.servers.findOne({_id: svr.id}, (err, serverDocument) => {
-							if(!err && serverDocument) {
+					if (svr && usr) {
+						db.servers.findOne({ _id: svr.id }, (err, serverDocument) => {
+							if (!err && serverDocument) {
 								const member = svr.members.get(usr.id);
-								if(bot.getUserBotAdmin(svr, serverDocument, member)>=3) {
+								if (bot.getUserBotAdmin(svr, serverDocument, member) >= 3) {
 									serverData.push({
 										name: req.user.guilds[i].name,
 										id: req.user.guilds[i].id,
@@ -941,8 +941,8 @@ module.exports = (bot, db, auth, config, winston) => {
 				serverData.sort((a, b) => {
 					return a.name.localeCompare(b.name);
 				});
-				db.users.findOne({_id: req.user.id}, (err, userDocument) => {
-					if(!err && userDocument) {
+				db.users.findOne({ _id: req.user.id }, (err, userDocument) => {
+					if (!err && userDocument) {
 						renderPage(userDocument.upvoted_gallery_extensions, serverData);
 					} else {
 						renderPage([], serverData);
@@ -956,7 +956,7 @@ module.exports = (bot, db, auth, config, winston) => {
 
 	// My extensions
 	app.get("/extensions/my", (req, res) => {
-		if(req.isAuthenticated()) {
+		if (req.isAuthenticated()) {
 			db.gallery.find({
 				owner_id: req.user.id
 			}, (err, galleryDocuments) => {
@@ -978,21 +978,21 @@ module.exports = (bot, db, auth, config, winston) => {
 		}
 	});
 	io.of("/extensions/my").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/extensions/my", (req, res) => {
-		if(req.isAuthenticated()) {
+		if (req.isAuthenticated()) {
 			db.gallery.find({
 				owner_id: req.user.id
 			}, (err, galleryDocuments) => {
-				if(!err && galleryDocuments) {
-					for(let i=0; i<galleryDocuments.length; i++) {
-						if(req.body[`extension-${i}-removed`]!=null) {
+				if (!err && galleryDocuments) {
+					for (let i = 0; i < galleryDocuments.length; i++) {
+						if (req.body[`extension-${i}-removed`] != null) {
 							db.gallery.findByIdAndRemove(galleryDocuments[i]._id).exec();
 							try {
 								fs.unlinkSync(`${__dirname}/../Extensions/gallery-${galleryDocuments[i]._id}.abext`);
 								break;
-							} catch(err) {
+							} catch (err) {
 								break;
 							}
 						}
@@ -1010,7 +1010,7 @@ module.exports = (bot, db, auth, config, winston) => {
 
 	// Extension builder
 	app.get("/extensions/builder", (req, res) => {
-		if(req.isAuthenticated()) {
+		if (req.isAuthenticated()) {
 			const renderPage = extensionData => {
 				res.render("pages/extensions.ejs", {
 					authUser: req.isAuthenticated() ? getAuthUser(req.user) : null,
@@ -1025,15 +1025,15 @@ module.exports = (bot, db, auth, config, winston) => {
 				});
 			};
 
-			if(req.query.extid) {
+			if (req.query.extid) {
 				db.gallery.findOne({
 					_id: req.query.extid,
 					owner_id: req.user.id
 				}, (err, galleryDocument) => {
-					if(!err && galleryDocument) {
+					if (!err && galleryDocument) {
 						try {
 							galleryDocument.code = fs.readFileSync(`${__dirname}/../Extensions/gallery-${galleryDocument._id}.abext`);
-						} catch(err) {
+						} catch (err) {
 							galleryDocument.code = "";
 						}
 						renderPage(galleryDocument);
@@ -1049,38 +1049,38 @@ module.exports = (bot, db, auth, config, winston) => {
 		}
 	});
 	io.of("/extensions/builder").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	const validateExtensionData = data => {
-		return ((data.type=="command" && data.key) || (data.type=="keyword" && data.keywords) || (data.type=="timer" && data.interval)) && data.code;
+		return ((data.type == "command" && data.key) || (data.type == "keyword" && data.keywords) || (data.type == "timer" && data.interval)) && data.code;
 	};
 	const writeExtensionData = (extensionDocument, data) => {
 		extensionDocument.name = data.name;
 		extensionDocument.type = data.type;
-		extensionDocument.key = data.type=="command" ? data.key : null;
-		extensionDocument.keywords = data.type=="keyword" ? data.keywords.split(",") : null;
-		extensionDocument.case_sensitive = data.type=="keyword" ? data.case_sensitive=="on" : null;
-		extensionDocument.interval = data.type=="timer" ? data.interval : null;
-		extensionDocument.usage_help = data.type=="command" ? data.usage_help : null;
-		extensionDocument.extended_help = data.type=="command" ? data.extended_help : null;
+		extensionDocument.key = data.type == "command" ? data.key : null;
+		extensionDocument.keywords = data.type == "keyword" ? data.keywords.split(",") : null;
+		extensionDocument.case_sensitive = data.type == "keyword" ? data.case_sensitive == "on" : null;
+		extensionDocument.interval = data.type == "timer" ? data.interval : null;
+		extensionDocument.usage_help = data.type == "command" ? data.usage_help : null;
+		extensionDocument.extended_help = data.type == "command" ? data.extended_help : null;
 		extensionDocument.last_updated = Date.now();
 
 		return extensionDocument;
 	};
 	app.post("/extensions/builder", (req, res) => {
-		if(req.isAuthenticated()) {
-			if(validateExtensionData(req.body)) {
+		if (req.isAuthenticated()) {
+			if (validateExtensionData(req.body)) {
 				const sendResponse = () => {
 					io.of(req.path).emit("update", req.user.id);
-					if(req.query.external=="true") {
+					if (req.query.external == "true") {
 						res.sendStatus(200);
 					} else {
 						res.redirect(req.originalUrl);
 					}
 				};
 				const saveExtensionCode = (err, extid) => {
-					if(err) {
-						winston.error(`Failed to update settings at ${req.path}`, {usrid: req.user.id}, err);
+					if (err) {
+						winston.error(`Failed to update settings at ${req.path}`, { usrid: req.user.id }, err);
 						sendResponse();
 					} else {
 						writeFile(`${__dirname}/../Extensions/gallery-${extid}.abext`, req.body.code, () => {
@@ -1094,24 +1094,24 @@ module.exports = (bot, db, auth, config, winston) => {
 					galleryDocument.description = req.body.description;
 					writeExtensionData(galleryDocument, req.body);
 
-					if(!isUpdate) {
+					if (!isUpdate) {
 						galleryDocument.owner_id = req.user.id;
 						io.of("/extensions/my").emit("update", req.user.id);
 					}
 					galleryDocument.save(err => {
-						if(!err && !req.query.extid) {
+						if (!err && !req.query.extid) {
 							req.originalUrl += `extid=${galleryDocument._id}`;
 						}
 						saveExtensionCode(err, galleryDocument._id);
 					});
 				};
 
-				if(req.query.extid) {
+				if (req.query.extid) {
 					db.gallery.findOne({
 						_id: req.query.extid,
 						owner_id: req.user.id
 					}, (err, galleryDocument) => {
-						if(!err && galleryDocument) {
+						if (!err && galleryDocument) {
 							saveExtensionData(galleryDocument, true);
 						} else {
 							saveExtensionData(new db.gallery(), false);
@@ -1135,7 +1135,7 @@ module.exports = (bot, db, auth, config, winston) => {
 			username: "invalid-user"
 		};
 		let categoryColor;
-		switch(blogDocument.category) {
+		switch (blogDocument.category) {
 			case "Development":
 				categoryColor = "is-warning";
 				break;
@@ -1169,30 +1169,30 @@ module.exports = (bot, db, auth, config, winston) => {
 	};
 	app.get("/blog", (req, res) => {
 		let count;
-		if(!req.query.count || isNaN(req.query.count)) {
+		if (!req.query.count || isNaN(req.query.count)) {
 			count = 4;
 		} else {
 			count = parseInt(req.query.count);
 		}
 		let page;
-		if(!req.query.page || isNaN(req.query.page)) {
+		if (!req.query.page || isNaN(req.query.page)) {
 			page = 1;
 		} else {
 			page = parseInt(req.query.page);
 		}
 
 		db.blog.count({}, (err, rawCount) => {
-			if(err || rawCount==null) {
+			if (err || rawCount == null) {
 				rawCount = 0;
 			}
 
 			db.blog.find({}).sort("-published_timestamp").skip(count * (page - 1)).limit(count).exec((err, blogDocuments) => {
 				let blogPosts = [];
-				if(!err && blogDocuments) {
+				if (!err && blogDocuments) {
 					blogPosts = blogDocuments.map(blogDocument => {
 						const data = getBlogData(blogDocument);
 						data.isPreview = true;
-						if(data.content.length>1000) {
+						if (data.content.length > 1000) {
 							data.content = `${data.content.slice(0, 1000)}...`;
 						}
 						return data;
@@ -1201,10 +1201,10 @@ module.exports = (bot, db, auth, config, winston) => {
 
 				res.render("pages/blog.ejs", {
 					authUser: req.isAuthenticated() ? getAuthUser(req.user) : null,
-					isMaintainer: req.isAuthenticated() ? config.maintainers.indexOf(req.user.id)>-1 : false,
+					isMaintainer: req.isAuthenticated() ? config.maintainers.indexOf(req.user.id) > -1 : false,
 					mode: "list",
 					currentPage: page,
-					numPages: Math.ceil(rawCount/(count==0 ? rawCount : count)),
+					numPages: Math.ceil(rawCount / (count == 0 ? rawCount : count)),
 					pageTitle: "AwesomeBot Blog",
 					data: blogPosts
 				});
@@ -1212,8 +1212,8 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	app.get("/blog/compose", (req, res) => {
-		if(req.isAuthenticated()) {
-			if(config.maintainers.indexOf(req.user.id)>-1) {
+		if (req.isAuthenticated()) {
+			if (config.maintainers.indexOf(req.user.id) > -1) {
 				const renderPage = data => {
 					res.render("pages/blog.ejs", {
 						authUser: req.isAuthenticated() ? getAuthUser(req.user) : null,
@@ -1224,9 +1224,9 @@ module.exports = (bot, db, auth, config, winston) => {
 					});
 				};
 
-				if(req.query.id) {
-					db.blog.findOne({_id: req.query.id}, (err, blogDocument) => {
-						if(err || !blogDocument) {
+				if (req.query.id) {
+					db.blog.findOne({ _id: req.query.id }, (err, blogDocument) => {
+						if (err || !blogDocument) {
 							renderPage({});
 						} else {
 							renderPage({
@@ -1248,11 +1248,11 @@ module.exports = (bot, db, auth, config, winston) => {
 		}
 	});
 	app.post("/blog/compose", (req, res) => {
-		if(req.isAuthenticated()) {
-			if(config.maintainers.indexOf(req.user.id)>-1) {
-				if(req.query.id) {
-					db.blog.findOne({_id: req.query.id}, (err, blogDocument) => {
-						if(err || !blogDocument) {
+		if (req.isAuthenticated()) {
+			if (config.maintainers.indexOf(req.user.id) > -1) {
+				if (req.query.id) {
+					db.blog.findOne({ _id: req.query.id }, (err, blogDocument) => {
+						if (err || !blogDocument) {
 							res.redirect("/error");
 						} else {
 							blogDocument.title = req.body.title;
@@ -1286,25 +1286,25 @@ module.exports = (bot, db, auth, config, winston) => {
 		db.blog.findOne({
 			_id: req.params.id
 		}, (err, blogDocument) => {
-			if(err || !blogDocument) {
+			if (err || !blogDocument) {
 				res.redirect("/error");
 			} else {
 				const data = getBlogData(blogDocument);
 				const getReactionCount = value => {
 					return blogDocument.reactions.reduce((count, reactionDocument) => {
-						return count + (reactionDocument.value==value);
+						return count + (reactionDocument.value == value);
 					}, 0);
 				};
 				data.reactions = {};
 				[-1, 0, 1].forEach(reaction => {
 					data.reactions[reaction] = getReactionCount(reaction);
 				});
-				if(req.isAuthenticated()) {
+				if (req.isAuthenticated()) {
 					data.userReaction = blogDocument.reactions.id(req.user.id) || {};
 				}
 				res.render("pages/blog.ejs", {
 					authUser: req.isAuthenticated() ? getAuthUser(req.user) : null,
-					isMaintainer: req.isAuthenticated() ? config.maintainers.indexOf(req.user.id)>-1 : false,
+					isMaintainer: req.isAuthenticated() ? config.maintainers.indexOf(req.user.id) > -1 : false,
 					mode: "article",
 					pageTitle: `${blogDocument.title} - AwesomeBot Blog`,
 					blogPost: data
@@ -1313,16 +1313,16 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	app.post("/blog/:id/react", (req, res) => {
-		if(req.isAuthenticated()) {
-			db.blog.findOne({_id: req.params.id}, (err, blogDocument) => {
-				if(err || !blogDocument) {
+		if (req.isAuthenticated()) {
+			db.blog.findOne({ _id: req.params.id }, (err, blogDocument) => {
+				if (err || !blogDocument) {
 					res.sendStatus(500);
 				} else {
 					req.query.value = parseInt(req.query.value);
 
 					const userReactionDocument = blogDocument.reactions.id(req.user.id);
-					if(userReactionDocument) {
-						if(userReactionDocument.value==req.query.value) {
+					if (userReactionDocument) {
+						if (userReactionDocument.value == req.query.value) {
 							userReactionDocument.remove();
 						} else {
 							userReactionDocument.value = req.query.value;
@@ -1344,8 +1344,8 @@ module.exports = (bot, db, auth, config, winston) => {
 		}
 	});
 	app.post("/blog/:id/delete", (req, res) => {
-		if(req.isAuthenticated()) {
-			if(config.maintainers.indexOf(req.user.id)>-1) {
+		if (req.isAuthenticated()) {
+			if (config.maintainers.indexOf(req.user.id) > -1) {
 				db.blog.findByIdAndRemove(req.params.id, err => {
 					res.sendStatus(err ? 500 : 200);
 				});
@@ -1362,10 +1362,10 @@ module.exports = (bot, db, auth, config, winston) => {
 		db.wiki.find({}).sort({
 			_id: 1
 		}).exec((err, wikiDocuments) => {
-			if(err || !wikiDocuments) {
+			if (err || !wikiDocuments) {
 				res.redirect("/error");
 			} else {
-				if(req.query.q!=null) {
+				if (req.query.q != null) {
 					req.query.q = req.query.q.toLowerCase().trim();
 
 					const searchResults = [];
@@ -1374,21 +1374,21 @@ module.exports = (bot, db, auth, config, winston) => {
 						const content = removeMd(wikiDocument.content);
 						const contentMatch = content.toLowerCase().indexOf(req.query.q);
 
-						if(titleMatch>-1 || contentMatch>-1) {
+						if (titleMatch > -1 || contentMatch > -1) {
 							let matchText;
-							if(contentMatch) {
-								const startIndex = contentMatch<300 ? 0 : (contentMatch - 300);
-								const endIndex = contentMatch>content.length-300 ? content.length : (contentMatch + 300);
-								matchText = `${content.substring(startIndex, contentMatch)}<strong>${content.substring(contentMatch, contentMatch+req.query.q.length)}</strong>${content.substring(contentMatch+req.query.q.length, endIndex)}`;
-								if(startIndex>0) {
+							if (contentMatch) {
+								const startIndex = contentMatch < 300 ? 0 : (contentMatch - 300);
+								const endIndex = contentMatch > content.length - 300 ? content.length : (contentMatch + 300);
+								matchText = `${content.substring(startIndex, contentMatch)}<strong>${content.substring(contentMatch, contentMatch + req.query.q.length)}</strong>${content.substring(contentMatch + req.query.q.length, endIndex)}`;
+								if (startIndex > 0) {
 									matchText = `...${matchText}`;
 								}
-								if(endIndex<content.length) {
+								if (endIndex < content.length) {
 									matchText += "...";
 								}
 							} else {
 								matchText = content.slice(0, 300);
-								if(content.length>300) {
+								if (content.length > 300) {
 									matchText += "...";
 								}
 							}
@@ -1401,7 +1401,7 @@ module.exports = (bot, db, auth, config, winston) => {
 
 					res.render("pages/wiki.ejs", {
 						authUser: req.isAuthenticated() ? getAuthUser(req.user) : null,
-						isContributor: req.isAuthenticated() ? (config.wiki_contributors.indexOf(req.user.id)>-1 || config.maintainers.indexOf(req.user.id)>-1) : false,
+						isContributor: req.isAuthenticated() ? (config.wiki_contributors.indexOf(req.user.id) > -1 || config.maintainers.indexOf(req.user.id) > -1) : false,
 						pageTitle: `Search for "${req.query.q}" - AwesomeBot Wiki`,
 						pageList: wikiDocuments.map(wikiDocument => {
 							return wikiDocument._id;
@@ -1420,8 +1420,8 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	app.get("/wiki/edit", (req, res) => {
-		if(req.isAuthenticated()) {
-			if(config.wiki_contributors.indexOf(req.user.id)>-1 || config.maintainers.indexOf(req.user.id)>-1) {
+		if (req.isAuthenticated()) {
+			if (config.wiki_contributors.indexOf(req.user.id) > -1 || config.maintainers.indexOf(req.user.id) > -1) {
 				const renderPage = data => {
 					res.render("pages/wiki.ejs", {
 						authUser: req.isAuthenticated() ? getAuthUser(req.user) : null,
@@ -1431,9 +1431,9 @@ module.exports = (bot, db, auth, config, winston) => {
 					});
 				};
 
-				if(req.query.id) {
-					db.wiki.findOne({_id: req.query.id}, (err, wikiDocument) => {
-						if(err || !wikiDocument) {
+				if (req.query.id) {
+					db.wiki.findOne({ _id: req.query.id }, (err, wikiDocument) => {
+						if (err || !wikiDocument) {
 							renderPage({
 								title: req.query.id
 							});
@@ -1455,18 +1455,18 @@ module.exports = (bot, db, auth, config, winston) => {
 		}
 	});
 	app.post("/wiki/edit", (req, res) => {
-		if(req.isAuthenticated()) {
-			if(config.wiki_contributors.indexOf(req.user.id)>-1 || config.maintainers.indexOf(req.user.id)>-1) {
-				if(req.query.id) {
-					db.wiki.findOne({_id: req.query.id}, (err, wikiDocument) => {
-						if(err || !wikiDocument) {
+		if (req.isAuthenticated()) {
+			if (config.wiki_contributors.indexOf(req.user.id) > -1 || config.maintainers.indexOf(req.user.id) > -1) {
+				if (req.query.id) {
+					db.wiki.findOne({ _id: req.query.id }, (err, wikiDocument) => {
+						if (err || !wikiDocument) {
 							res.redirect("/error");
 						} else {
 							wikiDocument._id = req.body.title;
 							wikiDocument.updates.push({
 								_id: req.user.id,
 								diff: diff.prettyHtml(diff.main(wikiDocument.content, req.body.content).filter(a => {
-									return a[0]!=0;
+									return a[0] != 0;
 								}))
 							});
 							wikiDocument.content = req.body.content;
@@ -1499,32 +1499,32 @@ module.exports = (bot, db, auth, config, winston) => {
 		db.wiki.find({}).sort({
 			_id: 1
 		}).exec((err, wikiDocuments) => {
-			if(err || !wikiDocuments) {
+			if (err || !wikiDocuments) {
 				res.redirect("/error");
 			} else {
 				const page = wikiDocuments.find(wikiDocument => {
-					return wikiDocument._id==req.params.id;
+					return wikiDocument._id == req.params.id;
 				}) || {
-					_id: req.params.id
-				};
+						_id: req.params.id
+					};
 				const getReactionCount = value => {
 					return page.reactions.reduce((count, reactionDocument) => {
-						return count + (reactionDocument.value==value);
+						return count + (reactionDocument.value == value);
 					}, 0);
 				};
 				let reactions, userReaction;
-				if(page.updates && page.reactions) {
+				if (page.updates && page.reactions) {
 					reactions = {
 						"-1": getReactionCount(-1),
 						"1": getReactionCount(1)
 					};
-					if(req.isAuthenticated()) {
+					if (req.isAuthenticated()) {
 						userReaction = page.reactions.id(req.user.id) || {};
 					}
 				}
 				res.render("pages/wiki.ejs", {
 					authUser: req.isAuthenticated() ? getAuthUser(req.user) : null,
-					isContributor: req.isAuthenticated() ? (config.wiki_contributors.indexOf(req.user.id)>-1 || config.maintainers.indexOf(req.user.id)>-1) : false,
+					isContributor: req.isAuthenticated() ? (config.wiki_contributors.indexOf(req.user.id) > -1 || config.maintainers.indexOf(req.user.id) > -1) : false,
 					pageTitle: `${page._id} - AwesomeBot Wiki`,
 					pageList: wikiDocuments.map(wikiDocument => {
 						return wikiDocument._id;
@@ -1544,16 +1544,16 @@ module.exports = (bot, db, auth, config, winston) => {
 		db.wiki.find({}).sort({
 			_id: 1
 		}).exec((err, wikiDocuments) => {
-			if(err || !wikiDocuments) {
+			if (err || !wikiDocuments) {
 				res.redirect("/error");
 			} else {
 				const page = wikiDocuments.find(wikiDocument => {
-					return wikiDocument._id==req.params.id;
+					return wikiDocument._id == req.params.id;
 				}) || {
-					_id: req.params.id
-				};
+						_id: req.params.id
+					};
 				let updates;
-				if(page.updates && page.reactions) {
+				if (page.updates && page.reactions) {
 					updates = page.updates.map(updateDocument => {
 						const author = bot.users.get(updateDocument._id) || {
 							id: "invalid-user",
@@ -1573,7 +1573,7 @@ module.exports = (bot, db, auth, config, winston) => {
 				}
 				res.render("pages/wiki.ejs", {
 					authUser: req.isAuthenticated() ? getAuthUser(req.user) : null,
-					isContributor: req.isAuthenticated() ? (config.wiki_contributors.indexOf(req.user.id)>-1 || config.maintainers.indexOf(req.user.id)>-1) : false,
+					isContributor: req.isAuthenticated() ? (config.wiki_contributors.indexOf(req.user.id) > -1 || config.maintainers.indexOf(req.user.id) > -1) : false,
 					pageTitle: `Edit history for ${page._id} - AwesomeBot Wiki`,
 					pageList: wikiDocuments.map(wikiDocument => {
 						return wikiDocument._id;
@@ -1588,16 +1588,16 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	app.post("/wiki/:id/react", (req, res) => {
-		if(req.isAuthenticated()) {
-			db.wiki.findOne({_id: req.params.id}, (err, wikiDocument) => {
-				if(err || !wikiDocument) {
+		if (req.isAuthenticated()) {
+			db.wiki.findOne({ _id: req.params.id }, (err, wikiDocument) => {
+				if (err || !wikiDocument) {
 					res.sendStatus(500);
 				} else {
 					req.query.value = parseInt(req.query.value);
 
 					const userReactionDocument = wikiDocument.reactions.id(req.user.id);
-					if(userReactionDocument) {
-						if(userReactionDocument.value==req.query.value) {
+					if (userReactionDocument) {
+						if (userReactionDocument.value == req.query.value) {
 							userReactionDocument.remove();
 						} else {
 							userReactionDocument.value = req.query.value;
@@ -1619,8 +1619,8 @@ module.exports = (bot, db, auth, config, winston) => {
 		}
 	});
 	app.post("/wiki/:id/delete", (req, res) => {
-		if(req.isAuthenticated()) {
-			if(config.maintainers.indexOf(req.user.id)>-1) {
+		if (req.isAuthenticated()) {
+			if (config.maintainers.indexOf(req.user.id) > -1) {
 				db.wiki.findByIdAndRemove(req.params.id, err => {
 					res.sendStatus(err ? 500 : 200);
 				});
@@ -1644,10 +1644,10 @@ module.exports = (bot, db, auth, config, winston) => {
 	const saveAdminConsoleOptions = (consolemember, svr, serverDocument, req, res, override) => {
 		serverDocument.save(err => {
 			io.of(req.path).emit("update", svr.id);
-			if(err) {
-				winston.error(`Failed to update settings at ${req.path}`, {svrid: svr.id, usrid: consolemember.id}, err);
+			if (err) {
+				winston.error(`Failed to update settings at ${req.path}`, { svrid: svr.id, usrid: consolemember.id }, err);
 			}
-			if(override) {
+			if (override) {
 				res.sendStatus(200);
 			} else {
 				res.redirect(req.originalUrl);
@@ -1659,8 +1659,8 @@ module.exports = (bot, db, auth, config, winston) => {
 	const saveMaintainerConsoleOptions = (consolemember, req, res) => {
 		io.of(req.path).emit("update", "maintainer");
 		writeFile(`${__dirname}/../Configuration/config.json`, JSON.stringify(config, null, 4), err => {
-			if(err) {
-				winston.error(`Failed to update settings at ${req.path}`, {usrid: consolemember.id}, err);
+			if (err) {
+				winston.error(`Failed to update settings at ${req.path}`, { usrid: consolemember.id }, err);
 			}
 			res.redirect(req.originalUrl);
 		});
@@ -1675,7 +1675,7 @@ module.exports = (bot, db, auth, config, winston) => {
 	app.get("/login/callback", passport.authenticate("discord", {
 		failureRedirect: "/error"
 	}), (req, res) => {
-		if(config.global_blocklist.indexOf(req.user.id)>-1 || !req.user.verified) {
+		if (config.global_blocklist.indexOf(req.user.id) > -1 || !req.user.verified) {
 			res.redirect("/error");
 		} else {
 			res.redirect("/dashboard");
@@ -1684,15 +1684,15 @@ module.exports = (bot, db, auth, config, winston) => {
 
 	// Admin console dashboard
 	app.get("/dashboard", (req, res) => {
-		if(!req.isAuthenticated()) {
+		if (!req.isAuthenticated()) {
 			res.redirect("/login");
 		} else {
 			const serverData = [];
 			const usr = bot.users.get(req.user.id);
 			const addServerData = (i, callback) => {
-				if(i<req.user.guilds.length) {
+				if (i < req.user.guilds.length) {
 					const svr = bot.guilds.get(req.user.guilds[i].id);
-					if(!svr && !((parseInt(req.user.guilds[i].permissions) >> 5) & 1)) {
+					if (!svr && !((parseInt(req.user.guilds[i].permissions) >> 5) & 1)) {
 						addServerData(++i, callback);
 						return;
 					}
@@ -1700,14 +1700,14 @@ module.exports = (bot, db, auth, config, winston) => {
 						name: req.user.guilds[i].name,
 						id: req.user.guilds[i].id,
 						icon: req.user.guilds[i].icon ? (`https://cdn.discordapp.com/icons/${req.user.guilds[i].id}/${req.user.guilds[i].icon}.jpg`) : "/static/img/discord-icon.png",
-						botJoined: svr!=null,
+						botJoined: svr != null,
 						isAdmin: false
 					};
-					if(svr && usr) {
-						db.servers.findOne({_id: svr.id}, (err, serverDocument) => {
-							if(!err && serverDocument) {
+					if (svr && usr) {
+						db.servers.findOne({ _id: svr.id }, (err, serverDocument) => {
+							if (!err && serverDocument) {
 								const member = svr.members.get(usr.id);
-								if(bot.getUserBotAdmin(svr, serverDocument, member)>=3) {
+								if (bot.getUserBotAdmin(svr, serverDocument, member) >= 3) {
 									data.isAdmin = true;
 								}
 							}
@@ -1726,7 +1726,7 @@ module.exports = (bot, db, auth, config, winston) => {
 				serverData.sort((a, b) => {
 					return a.name.localeCompare(b.name);
 				});
-				if(config.maintainers.indexOf(req.user.id)>-1) {
+				if (config.maintainers.indexOf(req.user.id) > -1) {
 					serverData.push({
 						name: "Maintainer Console",
 						id: "maintainer",
@@ -1748,13 +1748,13 @@ module.exports = (bot, db, auth, config, winston) => {
 	app.get("/dashboard/overview", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
 			// Redirect to maintainer console if necessary
-			if(!svr) {
+			if (!svr) {
 				res.redirect("/dashboard/maintainer?svrid=maintainer");
 			} else {
 				let topCommand;
 				let topCommandUsage = 0;
-				for(const cmd in serverDocument.command_usage) {
-					if(serverDocument.command_usage[cmd]>topCommandUsage) {
+				for (const cmd in serverDocument.command_usage) {
+					if (serverDocument.command_usage[cmd] > topCommandUsage) {
 						topCommand = cmd;
 						topCommandUsage = serverDocument.command_usage[cmd];
 					}
@@ -1774,7 +1774,7 @@ module.exports = (bot, db, auth, config, winston) => {
 					points: -1
 				}).limit(1).exec((err, userDocuments) => {
 					let richestMember;
-					if(!err && userDocuments && userDocuments.length>0) {
+					if (!err && userDocuments && userDocuments.length > 0) {
 						richestMember = svr.members.get(userDocuments[0]._id);
 					}
 					const topGame = serverDocument.games.sort((a, b) => {
@@ -1836,15 +1836,15 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/commands/command-options").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/commands/command-options", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(req.body.command_prefix!=bot.getCommandPrefix(svr, serverDocument)) {
+			if (req.body.command_prefix != bot.getCommandPrefix(svr, serverDocument)) {
 				serverDocument.config.command_prefix = req.body.command_prefix;
 			}
-			serverDocument.config.delete_command_messages = req.body.delete_command_messages=="on";
-			serverDocument.config.chatterbot = req.body.chatterbot=="on";
+			serverDocument.config.delete_command_messages = req.body.delete_command_messages == "on";
+			serverDocument.config.chatterbot = req.body.chatterbot == "on";
 			serverDocument.config.command_cooldown = parseInt(req.body.command_cooldown);
 			serverDocument.config.command_fetch_properties.default_count = parseInt(req.body.default_count);
 			serverDocument.config.command_fetch_properties.max_count = parseInt(req.body.max_count);
@@ -1881,21 +1881,21 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/commands/command-list").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	const parseCommandOptions = (svr, serverDocument, command, data) => {
 		const commandData = bot.getPublicCommandMetadata(command);
-		if(commandData) {
-			if(!serverDocument.config.commands[command]) {
+		if (commandData) {
+			if (!serverDocument.config.commands[command]) {
 				serverDocument.config.commands[command] = {};
 			}
-			if(commandData.defaults.admin_level<4) {
-				serverDocument.config.commands[command].isEnabled = data[`${command}-isEnabled`]=="on";
+			if (commandData.defaults.admin_level < 4) {
+				serverDocument.config.commands[command].isEnabled = data[`${command}-isEnabled`] == "on";
 				serverDocument.config.commands[command].admin_level = data[`${command}-admin_level`] || 0;
 				serverDocument.config.commands[command].disabled_channel_ids = [];
 				svr.channels.forEach(ch => {
-					if(ch.type==0) {
-						if(data[`${command}-disabled_channel_ids-${ch.id}`]==null) {
+					if (ch.type == 0) {
+						if (data[`${command}-disabled_channel_ids-${ch.id}`] == null) {
 							serverDocument.config.commands[command].disabled_channel_ids.push(ch.id);
 						}
 					}
@@ -1905,21 +1905,21 @@ module.exports = (bot, db, auth, config, winston) => {
 	};
 	app.post("/dashboard/commands/command-list", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(req.body["preset-applied"]!=null) {
+			if (req.body["preset-applied"] != null) {
 				const disabled_channel_ids = [];
 				svr.channels.forEach(ch => {
-					if(ch.type==0) {
-						if(req.body[`preset-disabled_channel_ids-${ch.id}`]==null) {
+					if (ch.type == 0) {
+						if (req.body[`preset-disabled_channel_ids-${ch.id}`] == null) {
 							disabled_channel_ids.push(ch.id);
 						}
 					}
 				});
-				for(const command in serverDocument.toObject().config.commands) {
+				for (const command in serverDocument.toObject().config.commands) {
 					serverDocument.config.commands[command].admin_level = req.body["preset-admin_level"] || 0;
 					serverDocument.config.commands[command].disabled_channel_ids = disabled_channel_ids;
 				}
 			} else {
-				for(const command in serverDocument.toObject().config.commands) {
+				for (const command in serverDocument.toObject().config.commands) {
 					parseCommandOptions(svr, serverDocument, command, req.body);
 				}
 			}
@@ -1963,32 +1963,32 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/commands/music").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/commands/music", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(Object.keys(req.body).length==1) {
-				if(req.body["new-name"] && !serverDocument.config.music_data.playlists.id(req.body["new-name"])) {
+			if (Object.keys(req.body).length == 1) {
+				if (req.body["new-name"] && !serverDocument.config.music_data.playlists.id(req.body["new-name"])) {
 					serverDocument.config.music_data.playlists.push({
 						_id: req.body["new-name"]
 					});
 				} else {
 					const args = Object.keys(req.body)[0].split("-");
-					if(args[0]=="new" && args[2]=="item" && args[1] && !isNaN(args[1]) && args[1]>=0 && args[1]<serverDocument.config.music_data.playlists.length) {
+					if (args[0] == "new" && args[2] == "item" && args[1] && !isNaN(args[1]) && args[1] >= 0 && args[1] < serverDocument.config.music_data.playlists.length) {
 						serverDocument.config.music_data.playlists[parseInt(args[1])].item_urls.push(req.body[Object.keys(req.body)[0]]);
 					}
 				}
 			} else {
 				parseCommandOptions(svr, serverDocument, "music", req.body);
-				serverDocument.config.music_data.addingQueueIsAdminOnly = req.body.addingQueueIsAdminOnly=="true";
-				serverDocument.config.music_data.removingQueueIsAdminOnly = req.body.removingQueueIsAdminOnly=="true";
+				serverDocument.config.music_data.addingQueueIsAdminOnly = req.body.addingQueueIsAdminOnly == "true";
+				serverDocument.config.music_data.removingQueueIsAdminOnly = req.body.removingQueueIsAdminOnly == "true";
 				serverDocument.config.music_data.channel_id = req.body.channel_id;
-				for(let i=0; i<serverDocument.config.music_data.playlists.length; i++) {
-					if(req.body[`playlist-${i}-removed`]!=null) {
+				for (let i = 0; i < serverDocument.config.music_data.playlists.length; i++) {
+					if (req.body[`playlist-${i}-removed`] != null) {
 						serverDocument.config.music_data.playlists[i] = null;
 					} else {
-						for(let j=0; j<serverDocument.config.music_data.playlists[i].item_urls.length; j++) {
-							if(req.body[`playlist-${i}-item-${j}-removed`]!=null) {
+						for (let j = 0; j < serverDocument.config.music_data.playlists[i].item_urls.length; j++) {
+							if (req.body[`playlist-${i}-item-${j}-removed`] != null) {
 								serverDocument.config.music_data.playlists[i].item_urls.splice(j, 1);
 							}
 						}
@@ -2032,26 +2032,26 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/commands/rss-feeds").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/commands/rss-feeds", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(req.body["new-url"] && req.body["new-name"] && !serverDocument.config.rss_feeds.id(req.body["new-name"])) {
+			if (req.body["new-url"] && req.body["new-name"] && !serverDocument.config.rss_feeds.id(req.body["new-name"])) {
 				serverDocument.config.rss_feeds.push({
 					_id: req.body["new-name"],
 					url: req.body["new-url"]
 				});
 			} else {
 				parseCommandOptions(svr, serverDocument, "rss", req.body);
-				for(let i=0; i<serverDocument.config.rss_feeds.length; i++) {
-					if(req.body[`rss-${i}-removed`]!=null) {
+				for (let i = 0; i < serverDocument.config.rss_feeds.length; i++) {
+					if (req.body[`rss-${i}-removed`] != null) {
 						serverDocument.config.rss_feeds[i] = null;
 					} else {
-						serverDocument.config.rss_feeds[i].streaming.isEnabled = req.body[`rss-${i}-streaming-isEnabled`]=="on";
+						serverDocument.config.rss_feeds[i].streaming.isEnabled = req.body[`rss-${i}-streaming-isEnabled`] == "on";
 						serverDocument.config.rss_feeds[i].streaming.enabled_channel_ids = [];
 						svr.channels.forEach(ch => {
-							if(ch.type==0) {
-								if(req.body[`rss-${i}-streaming-enabled_channel_ids-${ch.id}`]=="on") {
+							if (ch.type == 0) {
+								if (req.body[`rss-${i}-streaming-enabled_channel_ids-${ch.id}`] == "on") {
 									serverDocument.config.rss_feeds[i].streaming.enabled_channel_ids.push(ch.id);
 								}
 							}
@@ -2096,19 +2096,19 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/commands/streamers").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/commands/streamers", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(req.body["new-name"] && req.body["new-type"] && !serverDocument.config.streamers_data.id(req.body["new-name"])) {
+			if (req.body["new-name"] && req.body["new-type"] && !serverDocument.config.streamers_data.id(req.body["new-name"])) {
 				serverDocument.config.streamers_data.push({
 					_id: req.body["new-name"],
 					type: req.body["new-type"]
 				});
 			} else {
 				parseCommandOptions(svr, serverDocument, "streamers", req.body);
-				for(let i=0; i<serverDocument.config.streamers_data.length; i++) {
-					if(req.body[`streamer-${i}-removed`]!=null) {
+				for (let i = 0; i < serverDocument.config.streamers_data.length; i++) {
+					if (req.body[`streamer-${i}-removed`] != null) {
 						serverDocument.config.streamers_data[i] = null;
 					} else {
 						serverDocument.config.streamers_data[i].channel_id = req.body[`streamer-${i}-channel_id`];
@@ -2152,25 +2152,25 @@ module.exports = (bot, db, auth, config, winston) => {
 
 			const cleanTag = content => {
 				let cleanContent = "";
-				while(content.indexOf("<")>-1) {
+				while (content.indexOf("<") > -1) {
 					cleanContent += content.substring(0, content.indexOf("<"));
-					content = content.substring(content.indexOf("<")+1);
-					if(content && content.indexOf(">")>1) {
+					content = content.substring(content.indexOf("<") + 1);
+					if (content && content.indexOf(">") > 1) {
 						const type = content.charAt(0);
 						const id = content.substring(1, content.indexOf(">"));
-						if(!isNaN(id)) {
-							if(type=="@") {
+						if (!isNaN(id)) {
+							if (type == "@") {
 								const usr = svr.members.get(id);
-								if(usr) {
+								if (usr) {
 									cleanContent += `<b>@${usr.username}</b>`;
-									content = content.substring(content.indexOf(">")+1);
+									content = content.substring(content.indexOf(">") + 1);
 									continue;
 								}
-							} else if(type=="#") {
+							} else if (type == "#") {
 								const ch = svr.channels.get(id);
-								if(ch) {
+								if (ch) {
 									cleanContent += `<b>#${ch.name}</b>`;
-									content = content.substring(content.indexOf(">")+1);
+									content = content.substring(content.indexOf(">") + 1);
 									continue;
 								}
 							}
@@ -2182,7 +2182,7 @@ module.exports = (bot, db, auth, config, winston) => {
 				return cleanContent;
 			};
 
-			for(let i=0; i<data.configData.tags.list.length; i++) {
+			for (let i = 0; i < data.configData.tags.list.length; i++) {
 				data.configData.tags.list[i].content = cleanTag(data.configData.tags.list[i].content);
 				data.configData.tags.list[i].index = i;
 			}
@@ -2193,29 +2193,29 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/commands/tags").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/commands/tags", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(req.body["new-name"] && req.body["new-type"] && req.body["new-content"] && !serverDocument.config.tags.list.id(req.body["new-name"])) {
+			if (req.body["new-name"] && req.body["new-type"] && req.body["new-content"] && !serverDocument.config.tags.list.id(req.body["new-name"])) {
 				serverDocument.config.tags.list.push({
 					_id: req.body["new-name"],
 					content: req.body["new-content"],
-					isCommand: req.body["new-type"]=="command"
+					isCommand: req.body["new-type"] == "command"
 				});
 			} else {
 				parseCommandOptions(svr, serverDocument, "tag", req.body);
-				serverDocument.config.tags.listIsAdminOnly = req.body.listIsAdminOnly=="true";
-				serverDocument.config.tags.addingIsAdminOnly = req.body.addingIsAdminOnly=="true";
-				serverDocument.config.tags.addingCommandIsAdminOnly = req.body.addingCommandIsAdminOnly=="true";
-				serverDocument.config.tags.removingIsAdminOnly = req.body.removingIsAdminOnly=="true";
-				serverDocument.config.tags.removingCommandIsAdminOnly = req.body.removingCommandIsAdminOnly=="true";
-				for(let i=0; i<serverDocument.config.tags.list.length; i++) {
-					if(req.body[`tag-${i}-removed`]!=null) {
+				serverDocument.config.tags.listIsAdminOnly = req.body.listIsAdminOnly == "true";
+				serverDocument.config.tags.addingIsAdminOnly = req.body.addingIsAdminOnly == "true";
+				serverDocument.config.tags.addingCommandIsAdminOnly = req.body.addingCommandIsAdminOnly == "true";
+				serverDocument.config.tags.removingIsAdminOnly = req.body.removingIsAdminOnly == "true";
+				serverDocument.config.tags.removingCommandIsAdminOnly = req.body.removingCommandIsAdminOnly == "true";
+				for (let i = 0; i < serverDocument.config.tags.list.length; i++) {
+					if (req.body[`tag-${i}-removed`] != null) {
 						serverDocument.config.tags.list[i] = null;
 					} else {
-						serverDocument.config.tags.list[i].isCommand = req.body[`tag-${i}-isCommand`]=="command";
-						serverDocument.config.tags.list[i].isLocked = req.body[`tag-${i}-isLocked`]=="on";
+						serverDocument.config.tags.list[i].isCommand = req.body[`tag-${i}-isCommand`] == "command";
+						serverDocument.config.tags.list[i].isLocked = req.body[`tag-${i}-isLocked`] == "on";
 					}
 				}
 				serverDocument.config.tags.list.spliceNullElements();
@@ -2246,7 +2246,7 @@ module.exports = (bot, db, auth, config, winston) => {
 					}
 				}
 			};
-			for(let i=0; i<data.configData.translated_messages.length; i++) {
+			for (let i = 0; i < data.configData.translated_messages.length; i++) {
 				const member = svr.members.get(data.configData.translated_messages[i]._id) || {};
 				data.configData.translated_messages[i].username = member.user.username;
 				data.configData.translated_messages[i].avatar = member.user.avatarURL || "/static/img/discord-icon.png";
@@ -2255,17 +2255,17 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/commands/auto-translation").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/commands/auto-translation", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(req.body["new-member"] && req.body["new-source_language"]) {
+			if (req.body["new-member"] && req.body["new-source_language"]) {
 				const member = findQueryUser(req.body["new-member"], svr.members);
-				if(member && !serverDocument.config.translated_messages.id(member.id)) {
+				if (member && !serverDocument.config.translated_messages.id(member.id)) {
 					const enabled_channel_ids = [];
 					svr.channels.forEach(ch => {
-						if(ch.type==0) {
-							if(req.body[`new-enabled_channel_ids-${ch.id}`]=="true") {
+						if (ch.type == 0) {
+							if (req.body[`new-enabled_channel_ids-${ch.id}`] == "true") {
 								enabled_channel_ids.push(ch.id);
 							}
 						}
@@ -2277,14 +2277,14 @@ module.exports = (bot, db, auth, config, winston) => {
 					});
 				}
 			} else {
-				for(let i=0; i<serverDocument.config.translated_messages.length; i++) {
-					if(req.body[`translated_messages-${i}-removed`]!=null) {
+				for (let i = 0; i < serverDocument.config.translated_messages.length; i++) {
+					if (req.body[`translated_messages-${i}-removed`] != null) {
 						serverDocument.config.translated_messages[i] = null;
 					} else {
 						serverDocument.config.translated_messages[i].enabled_channel_ids = [];
 						svr.channels.forEach(ch => {
-							if(ch.type==0) {
-								if(req.body[`translated_messages-${i}-enabled_channel_ids-${ch.id}`]=="on") {
+							if (ch.type == 0) {
+								if (req.body[`translated_messages-${i}-enabled_channel_ids-${ch.id}`] == "on") {
 									serverDocument.config.translated_messages[i].enabled_channel_ids.push(ch.id);
 								}
 							}
@@ -2301,9 +2301,9 @@ module.exports = (bot, db, auth, config, winston) => {
 	// Admin console trivia sets
 	app.get("/dashboard/commands/trivia-sets", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(req.query.i) {
+			if (req.query.i) {
 				const triviaSetDocument = serverDocument.config.trivia_sets[req.query.i];
-				if(triviaSetDocument) {
+				if (triviaSetDocument) {
 					res.json(triviaSetDocument.items);
 				} else {
 					res.redirect("/error");
@@ -2330,18 +2330,18 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/commands/trivia-sets").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/commands/trivia-sets", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(req.body["new-name"] && req.body["new-items"] && !serverDocument.config.trivia_sets.id(req.body["new-name"])) {
+			if (req.body["new-name"] && req.body["new-items"] && !serverDocument.config.trivia_sets.id(req.body["new-name"])) {
 				serverDocument.config.trivia_sets.push({
 					_id: req.body["new-name"],
 					items: JSON.parse(req.body["new-items"])
 				});
 			} else {
-				for(let i=0; i<serverDocument.config.trivia_sets.length; i++) {
-					if(req.body[`trivia_set-${i}-removed`]!=null) {
+				for (let i = 0; i < serverDocument.config.trivia_sets.length; i++) {
+					if (req.body[`trivia_set-${i}-removed`] != null) {
 						serverDocument.config.trivia_sets[i] = null;
 					}
 				}
@@ -2370,7 +2370,7 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/commands/api-keys").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/commands/api-keys", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
@@ -2399,16 +2399,16 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/commands/tag-reaction").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/commands/tag-reaction", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(req.body["new-message"] && req.body["new-message"].length<=2000) {
+			if (req.body["new-message"] && req.body["new-message"].length <= 2000) {
 				serverDocument.config.tag_reaction.messages.push(req.body["new-message"]);
 			} else {
-				serverDocument.config.tag_reaction.isEnabled = req.body.isEnabled=="on";
-				for(let i=0; i<serverDocument.config.tag_reaction.messages.length; i++) {
-					if(req.body[`tag_reaction-${i}-removed`]!=null) {
+				serverDocument.config.tag_reaction.isEnabled = req.body.isEnabled == "on";
+				for (let i = 0; i < serverDocument.config.tag_reaction.messages.length; i++) {
+					if (req.body[`tag_reaction-${i}-removed`] != null) {
 						serverDocument.config.tag_reaction.messages[i] = null;
 					}
 				}
@@ -2452,7 +2452,7 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/stats-points/stats-collection").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/stats-points/stats-collection", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
@@ -2480,7 +2480,7 @@ module.exports = (bot, db, auth, config, winston) => {
 				configData: {
 					ranks_list: serverDocument.config.ranks_list.map(a => {
 						a.members = serverDocument.members.filter(memberDocument => {
-							return memberDocument.rank==a._id;
+							return memberDocument.rank == a._id;
 						}).length;
 						return a;
 					})
@@ -2489,30 +2489,30 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/stats-points/ranks").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/stats-points/ranks", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(req.body["new-name"] && req.body["new-max_score"] && !serverDocument.config.ranks_list.id(req.body["new-name"])) {
+			if (req.body["new-name"] && req.body["new-max_score"] && !serverDocument.config.ranks_list.id(req.body["new-name"])) {
 				serverDocument.config.ranks_list.push({
 					_id: req.body["new-name"],
 					max_score: req.body["new-max_score"],
 					role_id: req.body["new-role_id"] || null
 				});
 			} else {
-				for(let i=0; i<serverDocument.config.ranks_list.length; i++) {
-					if(req.body[`rank-${i}-removed`]!=null) {
+				for (let i = 0; i < serverDocument.config.ranks_list.length; i++) {
+					if (req.body[`rank-${i}-removed`] != null) {
 						serverDocument.config.ranks_list[i] = null;
 					} else {
 						serverDocument.config.ranks_list[i].max_score = parseInt(req.body[`rank-${i}-max_score`]);
-						if(serverDocument.config.ranks_list[i].role_id || req.body[`rank-${i}-role_id`]) {
+						if (serverDocument.config.ranks_list[i].role_id || req.body[`rank-${i}-role_id`]) {
 							serverDocument.config.ranks_list[i].role_id = req.body[`rank-${i}-role_id`];
 						}
 					}
 				}
-				if(req.body["ranks_list-reset"]!=null) {
-					for(let i=0; i<serverDocument.members.length; i++) {
-						if(serverDocument.members[i].rank && serverDocument.members[i].rank!=serverDocument.config.ranks_list[0]._id) {
+				if (req.body["ranks_list-reset"] != null) {
+					for (let i = 0; i < serverDocument.members.length; i++) {
+						if (serverDocument.members[i].rank && serverDocument.members[i].rank != serverDocument.config.ranks_list[0]._id) {
 							serverDocument.members[i].rank = serverDocument.config.ranks_list[0]._id;
 						}
 					}
@@ -2557,7 +2557,7 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/stats-points/awesome-points").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/stats-points/awesome-points", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
@@ -2580,7 +2580,7 @@ module.exports = (bot, db, auth, config, winston) => {
 				},
 				channelData: getChannelData(svr),
 				roleData: getRoleData(svr).filter(role => {
-					return serverDocument.config.admins.id(role.id)==null;
+					return serverDocument.config.admins.id(role.id) == null;
 				}),
 				currentPage: req.path,
 				configData: {
@@ -2596,18 +2596,18 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/management/admins").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/management/admins", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(req.body["new-role_id"] && req.body["new-level"] && !serverDocument.config.admins.id(req.body["new-role_id"])) {
+			if (req.body["new-role_id"] && req.body["new-level"] && !serverDocument.config.admins.id(req.body["new-role_id"])) {
 				serverDocument.config.admins.push({
 					_id: req.body["new-role_id"],
 					level: parseInt(req.body["new-level"])
 				});
 			} else {
-				for(let i=0; i<serverDocument.config.admins.length; i++) {
-					if(req.body[`admin-${i}-removed`]!=null) {
+				for (let i = 0; i < serverDocument.config.admins.length; i++) {
+					if (req.body[`admin-${i}-removed`] != null) {
 						serverDocument.config.admins[i] = null;
 					}
 				}
@@ -2646,22 +2646,22 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/management/moderation").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/management/moderation", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			serverDocument.config.moderation.isEnabled = req.body.isEnabled=="on";
-			serverDocument.config.moderation.autokick_members.isEnabled = req.body["autokick_members-isEnabled"]=="on";
+			serverDocument.config.moderation.isEnabled = req.body.isEnabled == "on";
+			serverDocument.config.moderation.autokick_members.isEnabled = req.body["autokick_members-isEnabled"] == "on";
 			serverDocument.config.moderation.autokick_members.max_inactivity = parseInt(req.body["autokick_members-max_inactivity"]);
 			serverDocument.config.moderation.new_member_roles = [];
 			svr.roles.forEach(role => {
-				if(role.name!="@everyone" && role.name.indexOf("color-")!=0) {
-					if(req.body[`new_member_roles-${role.id}`]=="on") {
+				if (role.name != "@everyone" && role.name.indexOf("color-") != 0) {
+					if (req.body[`new_member_roles-${role.id}`] == "on") {
 						serverDocument.config.moderation.new_member_roles.push(role.id);
 					}
 				}
 			});
-			serverDocument.modlog.isEnabled = req.body["modlog-isEnabled"]=="on";
+			serverDocument.modlog.isEnabled = req.body["modlog-isEnabled"] == "on";
 			serverDocument.modlog.channel_id = req.body["modlog-channel_id"];
 
 			saveAdminConsoleOptions(consolemember, svr, serverDocument, req, res);
@@ -2681,7 +2681,7 @@ module.exports = (bot, db, auth, config, winston) => {
 				currentPage: req.path,
 				configData: {
 					blocked: svr.members.filter(member => {
-						return serverDocument.config.blocked.indexOf(member.id)>-1;
+						return serverDocument.config.blocked.indexOf(member.id) > -1;
 					}).map(member => {
 						return {
 							name: member.user.username,
@@ -2707,18 +2707,18 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/management/blocked").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/management/blocked", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(req.body["new-member"]) {
+			if (req.body["new-member"]) {
 				const member = findQueryUser(req.body["new-member"], svr.members);
-				if(member && serverDocument.config.blocked.indexOf(member.id)==-1 && bot.getUserBotAdmin(svr, serverDocument, member)==0) {
+				if (member && serverDocument.config.blocked.indexOf(member.id) == -1 && bot.getUserBotAdmin(svr, serverDocument, member) == 0) {
 					serverDocument.config.blocked.push(member.id);
 				}
 			} else {
-				for(let i=0; i<serverDocument.config.blocked.length; i++) {
-					if(req.body[`block-${i}-removed`]!=null) {
+				for (let i = 0; i < serverDocument.config.blocked.length; i++) {
+					if (req.body[`block-${i}-removed`] != null) {
 						serverDocument.config.blocked[i] = null;
 					}
 				}
@@ -2736,13 +2736,13 @@ module.exports = (bot, db, auth, config, winston) => {
 			svr.members.forEach(member => {
 				const mutedChannels = [];
 				svr.channels.filter(ch => {
-					return ch.type==0;
+					return ch.type == 0;
 				}).forEach(ch => {
-					if(bot.isMuted(ch, member)) {
+					if (bot.isMuted(ch, member)) {
 						mutedChannels.push(ch.id);
 					}
 				});
-				if(mutedChannels.length>0) {
+				if (mutedChannels.length > 0) {
 					mutedMembers.push({
 						name: member.user.username,
 						id: member.id,
@@ -2773,14 +2773,14 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/management/muted").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/management/muted", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(req.body["new-member"] && req.body["new-channel_id"]) {
+			if (req.body["new-member"] && req.body["new-channel_id"]) {
 				const member = findQueryUser(req.body["new-member"], svr.members);
 				const ch = svr.channels.get(req.body["new-channel_id"]);
-				if(member && bot.getUserBotAdmin(svr, serverDocument, member)==0 && ch && !bot.isMuted(ch, member)) {
+				if (member && bot.getUserBotAdmin(svr, serverDocument, member) == 0 && ch && !bot.isMuted(ch, member)) {
 					bot.muteMember(ch, member, () => {
 						res.redirect(req.originalUrl);
 					});
@@ -2790,10 +2790,10 @@ module.exports = (bot, db, auth, config, winston) => {
 			} else {
 				svr.members.forEach(member => {
 					svr.channels.forEach(ch => {
-						if(ch.type==0) {
-							if(bot.isMuted(ch, member) && (!req.body[`muted-${member.id}-${ch.id}`] || req.body[`muted-${member.id}-removed`]!=null)) {
+						if (ch.type == 0) {
+							if (bot.isMuted(ch, member) && (!req.body[`muted-${member.id}-${ch.id}`] || req.body[`muted-${member.id}-removed`] != null)) {
 								bot.unmuteMember(ch, member);
-							} else if(!bot.isMuted(ch, member) && req.body[`muted-${member.id}-${ch.id}`]=="on") {
+							} else if (!bot.isMuted(ch, member) && req.body[`muted-${member.id}-${ch.id}`] == "on") {
 								bot.muteMember(ch, member);
 							}
 						}
@@ -2821,7 +2821,7 @@ module.exports = (bot, db, auth, config, winston) => {
 					}
 				},
 				strikes: serverDocument.members.filter(memberDocument => {
-					return svr.members.has(memberDocument._id) && memberDocument.strikes.length>0;
+					return svr.members.has(memberDocument._id) && memberDocument.strikes.length > 0;
 				}).map(memberDocument => {
 					const member = svr.members.get(memberDocument._id);
 					return {
@@ -2853,16 +2853,16 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/management/strikes").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/management/strikes", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(req.body["new-member"] && req.body["new-reason"]) {
+			if (req.body["new-member"] && req.body["new-reason"]) {
 				const member = findQueryUser(req.body["new-member"], svr.members);
-				if(member && bot.getUserBotAdmin(svr, serverDocument, member)==0) {
+				if (member && bot.getUserBotAdmin(svr, serverDocument, member) == 0) {
 					let memberDocument = serverDocument.members.id(member.id);
-					if(!memberDocument) {
-						serverDocument.members.push({_id: member.id});
+					if (!memberDocument) {
+						serverDocument.members.push({ _id: member.id });
 						memberDocument = serverDocument.members.id(member.id);
 					}
 					memberDocument.strikes.push({
@@ -2871,11 +2871,11 @@ module.exports = (bot, db, auth, config, winston) => {
 					});
 				}
 			} else {
-				for(const key in req.body) {
+				for (const key in req.body) {
 					const args = key.split("-");
-					if(args[0]=="strikes" && !isNaN(args[1]) && args[2]=="removeall") {
+					if (args[0] == "strikes" && !isNaN(args[1]) && args[2] == "removeall") {
 						const memberDocument = serverDocument.members.id(args[1]);
-						if(memberDocument) {
+						if (memberDocument) {
 							memberDocument.strikes = [];
 						}
 					}
@@ -2890,8 +2890,8 @@ module.exports = (bot, db, auth, config, winston) => {
 	app.get("/dashboard/management/status-messages", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
 			const statusMessagesData = serverDocument.toObject().config.moderation.status_messages;
-			for(let i=0; i<statusMessagesData.member_streaming_message.enabled_user_ids.length; i++) {
-				const member = svr.members.get(statusMessagesData.member_streaming_message.enabled_user_ids[i]) || {user: {}};
+			for (let i = 0; i < statusMessagesData.member_streaming_message.enabled_user_ids.length; i++) {
+				const member = svr.members.get(statusMessagesData.member_streaming_message.enabled_user_ids[i]) || { user: {} };
 				statusMessagesData.member_streaming_message.enabled_user_ids[i] = {
 					name: member.user.username,
 					id: member.id,
@@ -2917,44 +2917,44 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/management/status-messages").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/management/status-messages", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(Object.keys(req.body).length==1) {
+			if (Object.keys(req.body).length == 1) {
 				const args = Object.keys(req.body)[0].split("-");
-				if(args[0]=="new" && serverDocument.config.moderation.status_messages[args[1]] && args[2]=="message") {
-					if(args[1]=="member_streaming_message") {
+				if (args[0] == "new" && serverDocument.config.moderation.status_messages[args[1]] && args[2] == "message") {
+					if (args[1] == "member_streaming_message") {
 						const member = findQueryUser(req.body[Object.keys(req.body)[0]], svr.members);
-						if(member && serverDocument.config.moderation.status_messages[args[1]].enabled_user_ids.indexOf(member.id)==-1) {
+						if (member && serverDocument.config.moderation.status_messages[args[1]].enabled_user_ids.indexOf(member.id) == -1) {
 							serverDocument.config.moderation.status_messages[args[1]].enabled_user_ids.push(member.id);
 						}
-					} else if(serverDocument.config.moderation.status_messages[args[1]].messages) {
+					} else if (serverDocument.config.moderation.status_messages[args[1]].messages) {
 						serverDocument.config.moderation.status_messages[args[1]].messages.push(req.body[Object.keys(req.body)[0]]);
 					}
 				}
 			} else {
-				for(const status_message in serverDocument.toObject().config.moderation.status_messages) {
-					if(["new_member_pm", "member_removed_pm"].indexOf(status_message)==-1) {
+				for (const status_message in serverDocument.toObject().config.moderation.status_messages) {
+					if (["new_member_pm", "member_removed_pm"].indexOf(status_message) == -1) {
 						serverDocument.config.moderation.status_messages[status_message].channel_id = "";
 					}
-					for(const key in serverDocument.toObject().config.moderation.status_messages[status_message]) {
-						switch(key) {
+					for (const key in serverDocument.toObject().config.moderation.status_messages[status_message]) {
+						switch (key) {
 							case "isEnabled":
-								serverDocument.config.moderation.status_messages[status_message][key] = req.body[`${status_message}-${key}`]=="on";
+								serverDocument.config.moderation.status_messages[status_message][key] = req.body[`${status_message}-${key}`] == "on";
 								break;
 							case "enabled_channel_ids":
 								serverDocument.config.moderation.status_messages[status_message][key] = [];
 								svr.channels.forEach(ch => {
-									if(ch.type==0) {
-										if(req.body[`${status_message}-${key}-${ch.id}`]!=null) {
+									if (ch.type == 0) {
+										if (req.body[`${status_message}-${key}-${ch.id}`] != null) {
 											serverDocument.config.moderation.status_messages[status_message][key].push(ch.id);
 										}
 									}
 								});
 								break;
 							case "channel_id":
-								if(["message_edited_message", "message_deleted_message"].indexOf(status_message)>-1 && req.body[`${status_message}-type`]=="msg") {
+								if (["message_edited_message", "message_deleted_message"].indexOf(status_message) > -1 && req.body[`${status_message}-type`] == "msg") {
 									break;
 								}
 							case "type":
@@ -2962,10 +2962,10 @@ module.exports = (bot, db, auth, config, winston) => {
 								break;
 						}
 					}
-					const key = status_message=="member_streaming_message" ? "enabled_user_ids" : "messages";
-					if(serverDocument.config.moderation.status_messages[status_message][key]) {
-						for(let i=0; i<serverDocument.config.moderation.status_messages[status_message][key].length; i++) {
-							if(req.body[`${status_message}-${i}-removed`]!=null) {
+					const key = status_message == "member_streaming_message" ? "enabled_user_ids" : "messages";
+					if (serverDocument.config.moderation.status_messages[status_message][key]) {
+						for (let i = 0; i < serverDocument.config.moderation.status_messages[status_message][key].length; i++) {
+							if (req.body[`${status_message}-${i}-removed`] != null) {
 								serverDocument.config.moderation.status_messages[status_message][key][i] = null;
 							}
 						}
@@ -2982,9 +2982,9 @@ module.exports = (bot, db, auth, config, winston) => {
 	app.get("/dashboard/management/filters", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
 			const filteredCommands = [];
-			for(const command in serverDocument.toObject().config.commands) {
+			for (const command in serverDocument.toObject().config.commands) {
 				const commandData = bot.getPublicCommandMetadata(command);
-				if(commandData && commandData.defaults.is_nsfw_filtered) {
+				if (commandData && commandData.defaults.is_nsfw_filtered) {
 					filteredCommands.push(command);
 				}
 			}
@@ -3011,23 +3011,23 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/management/filters").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/management/filters", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			for(const filter in serverDocument.toObject().config.moderation.filters) {
-				for(const key in serverDocument.toObject().config.moderation.filters[filter]) {
-					switch(key) {
+			for (const filter in serverDocument.toObject().config.moderation.filters) {
+				for (const key in serverDocument.toObject().config.moderation.filters[filter]) {
+					switch (key) {
 						case "isEnabled":
 						case "delete_messages":
 						case "delete_message":
-							serverDocument.config.moderation.filters[filter][key] = req.body[`${filter}-${key}`]=="on";
+							serverDocument.config.moderation.filters[filter][key] = req.body[`${filter}-${key}`] == "on";
 							break;
 						case "disabled_channel_ids":
 							serverDocument.config.moderation.filters[filter][key] = [];
 							svr.channels.forEach(ch => {
-								if(ch.type==0) {
-									if(req.body[`${filter}-${key}-${ch.id}`]!="on") {
+								if (ch.type == 0) {
+									if (req.body[`${filter}-${key}-${ch.id}`] != "on") {
 										serverDocument.config.moderation.filters[filter][key].push(ch.id);
 									}
 								}
@@ -3067,17 +3067,17 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/management/message-of-the-day").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/management/message-of-the-day", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
 			const alreadyEnabled = serverDocument.config.message_of_the_day.isEnabled;
-			serverDocument.config.message_of_the_day.isEnabled = req.body.isEnabled=="on";
+			serverDocument.config.message_of_the_day.isEnabled = req.body.isEnabled == "on";
 			serverDocument.config.message_of_the_day.message_content = req.body.message_content;
 			serverDocument.config.message_of_the_day.channel_id = req.body.channel_id;
 			serverDocument.config.message_of_the_day.interval = parseInt(req.body.interval);
 
-			if(!alreadyEnabled && serverDocument.config.message_of_the_day.isEnabled) {
+			if (!alreadyEnabled && serverDocument.config.message_of_the_day.isEnabled) {
 				createMessageOfTheDay(bot, winston, svr, serverDocument.config.message_of_the_day);
 			}
 
@@ -3104,14 +3104,14 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/management/voicetext-channels").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/management/voicetext-channels", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
 			serverDocument.config.voicetext_channels = [];
-			svr.channels.forEach(ch=> {
-				if(ch.type==2) {
-					if(req.body[`voicetext_channels-${ch.id}`]=="on") {
+			svr.channels.forEach(ch => {
+				if (ch.type == 2) {
+					if (req.body[`voicetext_channels-${ch.id}`] == "on") {
 						serverDocument.config.voicetext_channels.push(ch.id);
 					}
 				}
@@ -3156,7 +3156,7 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/management/roles").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/management/roles", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
@@ -3164,8 +3164,8 @@ module.exports = (bot, db, auth, config, winston) => {
 			parseCommandOptions(svr, serverDocument, "role", req.body);
 			serverDocument.config.custom_roles = [];
 			svr.roles.forEach(role => {
-				if(role.name!="@everyone" && role.name.indexOf("color-")!=0) {
-					if(req.body[`custom_roles-${role.id}`]=="on") {
+				if (role.name != "@everyone" && role.name.indexOf("color-") != 0) {
+					if (req.body[`custom_roles-${role.id}`] == "on") {
 						serverDocument.config.custom_roles.push(role.id);
 					}
 				}
@@ -3185,23 +3185,23 @@ module.exports = (bot, db, auth, config, winston) => {
 				limit: 500,
 				order: "desc"
 			}, (err, results) => {
-				if(err) {
+				if (err) {
 					res.redirect("/error");
 				} else {
 					results = results.file;
 					const logs = [];
-					for(let i=0; i<results.length; i++) {
-						if(results[i].svrid && svr.id==results[i].svrid && (!req.query.q || results[i].message.toLowerCase().indexOf(req.query.q.toLowerCase())>-1) && (!req.query.chid || results[i].chid==req.query.chid)) {
+					for (let i = 0; i < results.length; i++) {
+						if (results[i].svrid && svr.id == results[i].svrid && (!req.query.q || results[i].message.toLowerCase().indexOf(req.query.q.toLowerCase()) > -1) && (!req.query.chid || results[i].chid == req.query.chid)) {
 							delete results[i].svrid;
 							const ch = results[i].chid ? svr.channels.get(results[i].chid) : null;
-							if(results[i].chid) {
+							if (results[i].chid) {
 								results[i].ch = ch ? ch.name : "invalid-channel";
 							}
 							const member = results[i].usrid ? svr.members.get(results[i].usrid) : null;
-							if(results[i].usrid) {
+							if (results[i].usrid) {
 								results[i].usr = member ? (`${member.user.username}#${member.user.discriminator}`) : "invalid-user";
 							}
-							switch(results[i].level) {
+							switch (results[i].level) {
 								case "warn":
 									results[i].level = "exclamation";
 									results[i].levelColor = "#ffdd57";
@@ -3257,12 +3257,12 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/management/name-display").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/other/name-display", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			serverDocument.config.name_display.use_nick = req.body["name_display-use_nick"]=="on";
-			serverDocument.config.name_display.show_discriminator = req.body["name_display-show_discriminator"]=="on";
+			serverDocument.config.name_display.use_nick = req.body["name_display-use_nick"] == "on";
+			serverDocument.config.name_display.show_discriminator = req.body["name_display-show_discriminator"] == "on";
 
 			saveAdminConsoleOptions(consolemember, svr, serverDocument, req, res);
 		});
@@ -3277,8 +3277,8 @@ module.exports = (bot, db, auth, config, winston) => {
 			const ongoingLotteries = [];
 			serverDocument.channels.forEach(channelDocument => {
 				const ch = svr.channels.get(channelDocument._id);
-				if(ch) {
-					if(channelDocument.trivia.isOngoing) {
+				if (ch) {
+					if (channelDocument.trivia.isOngoing) {
 						ongoingTrivia.push({
 							channel: {
 								name: ch.name,
@@ -3290,8 +3290,8 @@ module.exports = (bot, db, auth, config, winston) => {
 							responders: channelDocument.trivia.responders.length
 						});
 					}
-					if(channelDocument.poll.isOngoing) {
-						const creator = svr.members.get(channelDocument.poll.creator_id) || {user: "invalid-user"};
+					if (channelDocument.poll.isOngoing) {
+						const creator = svr.members.get(channelDocument.poll.creator_id) || { user: "invalid-user" };
 						ongoingPolls.push({
 							title: channelDocument.poll.title,
 							channel: {
@@ -3305,8 +3305,8 @@ module.exports = (bot, db, auth, config, winston) => {
 							responses: channelDocument.poll.responses.length
 						});
 					}
-					if(channelDocument.giveaway.isOngoing) {
-						const creator = svr.members.get(channelDocument.giveaway.creator_id) || {user: "invalid-user"};
+					if (channelDocument.giveaway.isOngoing) {
+						const creator = svr.members.get(channelDocument.giveaway.creator_id) || { user: "invalid-user" };
 						ongoingGiveaways.push({
 							title: channelDocument.giveaway.title,
 							channel: {
@@ -3319,7 +3319,7 @@ module.exports = (bot, db, auth, config, winston) => {
 							participants: channelDocument.giveaway.participant_ids.length
 						});
 					}
-					if(channelDocument.lottery.isOngoing) {
+					if (channelDocument.lottery.isOngoing) {
 						ongoingLotteries.push({
 							channel: {
 								name: ch.name,
@@ -3348,20 +3348,20 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/management/ongoing-activities").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/other/ongoing-activities", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(req.body["end-type"] && req.body["end-id"]) {
+			if (req.body["end-type"] && req.body["end-id"]) {
 				const ch = svr.channels.get(req.body["end-id"]);
-				if(ch) {
+				if (ch) {
 					let channelDocument = serverDocument.channels.id(ch.id);
-					if(!channelDocument) {
-						serverDocument.channels.push({_id: ch.id});
+					if (!channelDocument) {
+						serverDocument.channels.push({ _id: ch.id });
 						channelDocument = serverDocument.channels.id(ch.id);
 					}
 
-					switch(req.body["end-type"]) {
+					switch (req.body["end-type"]) {
 						case "trivia":
 							Trivia.end(bot, svr, serverDocument, ch, channelDocument);
 							break;
@@ -3400,35 +3400,35 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/other/public-data").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/other/public-data", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			serverDocument.config.public_data.isShown = req.body.isShown=="on";
+			serverDocument.config.public_data.isShown = req.body.isShown == "on";
 			let createInvite = false;
-			if(!serverDocument.config.public_data.server_listing.isEnabled && req.body["server_listing-isEnabled"]=="on") {
+			if (!serverDocument.config.public_data.server_listing.isEnabled && req.body["server_listing-isEnabled"] == "on") {
 				createInvite = true;
 			}
-			serverDocument.config.public_data.server_listing.isEnabled = req.body["server_listing-isEnabled"]=="on";
+			serverDocument.config.public_data.server_listing.isEnabled = req.body["server_listing-isEnabled"] == "on";
 			serverDocument.config.public_data.server_listing.category = req.body["server_listing-category"];
 			serverDocument.config.public_data.server_listing.description = req.body["server_listing-description"];
-			if(createInvite) {
+			if (createInvite) {
 				svr.defaultChannel.createInvite({
 					maxAge: 0,
 					maxUses: 0
 				}).then(invite => {
-					if(invite) {
+					if (invite) {
 						serverDocument.config.public_data.server_listing.invite_link = `https://discord.gg/${invite.code}`;
 					}
 					saveAdminConsoleOptions(consolemember, svr, serverDocument, req, res);
 				});
-			} else if(serverDocument.config.public_data.server_listing.invite_link) {
+			} else if (serverDocument.config.public_data.server_listing.invite_link) {
 				svr.defaultChannel.getInvites().then(invites => {
-					if(invites) {
+					if (invites) {
 						const inviteToDelete = invites.find(invite => {
-							return (`https://discord.gg/${invite.code}`)==serverDocument.config.public_data.server_listing.invite_link;
+							return (`https://discord.gg/${invite.code}`) == serverDocument.config.public_data.server_listing.invite_link;
 						});
-						if(inviteToDelete) {
+						if (inviteToDelete) {
 							inviteToDelete.delete().then(() => {
 								saveAdminConsoleOptions(consolemember, svr, serverDocument, req, res);
 							});
@@ -3465,20 +3465,20 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/other/extensions").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/other/extensions", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(Object.keys(req.body).length==1 && Object.keys(req.body)[0].indexOf("new-")==0) {
+			if (Object.keys(req.body).length == 1 && Object.keys(req.body)[0].indexOf("new-") == 0) {
 				const state = Object.keys(req.body)[0].split("-")[1];
 				db.gallery.findOne({
 					_id: req.body[Object.keys(req.body)[0]],
 					state
 				}, (err, galleryDocument) => {
-					if(!err && galleryDocument) {
+					if (!err && galleryDocument) {
 						let extensionDocument = serverDocument.extensions.id(galleryDocument._id);
 						let isUpdate = true;
-						if(!extensionDocument) {
+						if (!extensionDocument) {
 							extensionDocument = {};
 							isUpdate = false;
 						}
@@ -3495,10 +3495,10 @@ module.exports = (bot, db, auth, config, winston) => {
 						extensionDocument.updates_available = 0;
 						extensionDocument.last_updated = galleryDocument.last_updated;
 
-						if(isUpdate) {
+						if (isUpdate) {
 							io.of("/dashboard/other/extension-builder").emit("update", svr.id);
 						} else {
-							extensionDocument.admin_level = ["command", "keyword"].indexOf(galleryDocument.type)>-1 ? 0 : null;
+							extensionDocument.admin_level = ["command", "keyword"].indexOf(galleryDocument.type) > -1 ? 0 : null;
 							extensionDocument.enabled_channel_ids = [svr.defaultChannel.id];
 							extensionDocument.store = {};
 							serverDocument.extensions.push(extensionDocument);
@@ -3508,7 +3508,7 @@ module.exports = (bot, db, auth, config, winston) => {
 							writeFile(`${__dirname}/../Extensions/${svr.id}-${extensionDocument._id}.abext`, fs.readFileSync(`${__dirname}/../Extensions/gallery-${req.body[Object.keys(req.body)[0]]}.abext`), () => {
 								saveAdminConsoleOptions(consolemember, svr, serverDocument, req, res);
 							});
-						} catch(err) {
+						} catch (err) {
 							saveAdminConsoleOptions(consolemember, svr, serverDocument, req, res);
 						}
 					} else {
@@ -3516,11 +3516,11 @@ module.exports = (bot, db, auth, config, winston) => {
 					}
 				});
 			} else {
-				for(let i=0; i<serverDocument.extensions.length; i++) {
-					if(req.body[`extension-${i}-removed`]!=null) {
+				for (let i = 0; i < serverDocument.extensions.length; i++) {
+					if (req.body[`extension-${i}-removed`] != null) {
 						try {
 							fs.unlinkSync(`${__dirname}/../Extensions/${svr.id}-${serverDocument.extensions[i]._id}.abext`);
-						} catch(err) {
+						} catch (err) {
 							winston.error(`Failed to delete extension ${svr.id}-${serverDocument.extensions[i]._id}.abext`, err);
 						}
 						serverDocument.extensions[i] = null;
@@ -3538,15 +3538,15 @@ module.exports = (bot, db, auth, config, winston) => {
 	app.get("/dashboard/other/extension-builder", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
 			let extensionData = {};
-			if(req.query.extid) {
+			if (req.query.extid) {
 				extensionData = serverDocument.extensions.id(req.query.extid);
-				if(!extensionData) {
+				if (!extensionData) {
 					res.redirect("/error");
 					return;
 				} else {
 					try {
 						extensionData.code = fs.readFileSync(`${__dirname}/../Extensions/${svr.id}-${extensionData._id}.abext`);
-					} catch(err) {
+					} catch (err) {
 						extensionData.code = "";
 					}
 				}
@@ -3565,21 +3565,21 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/other/extension-builder").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/other/extension-builder", (req, res) => {
 		checkAuth(req, res, (consolemember, svr, serverDocument) => {
-			if(validateExtensionData(req.body)) {
+			if (validateExtensionData(req.body)) {
 				let extensionDocument = serverDocument.extensions.id(req.query.extid);
 				let isUpdate = true;
-				if(!extensionDocument) {
+				if (!extensionDocument) {
 					extensionDocument = {};
 					isUpdate = false;
 				}
 				const enabled_channel_ids = [];
 				svr.channels.forEach(ch => {
-					if(ch.type==0) {
-						if(req.body[`enabled_channel_ids-${ch.id}`]=="on") {
+					if (ch.type == 0) {
+						if (req.body[`enabled_channel_ids-${ch.id}`] == "on") {
 							enabled_channel_ids.push(ch.id);
 						}
 					}
@@ -3589,10 +3589,10 @@ module.exports = (bot, db, auth, config, winston) => {
 				extensionDocument.admin_level = req.body[`${req.body.type}-admin_level`];
 				extensionDocument = writeExtensionData(extensionDocument, req.body);
 
-				if(!isUpdate) {
+				if (!isUpdate) {
 					serverDocument.extensions.push(extensionDocument);
-					extensionDocument._id = serverDocument.extensions[serverDocument.extensions.length-1]._id;
-					if(!req.query.extid) {
+					extensionDocument._id = serverDocument.extensions[serverDocument.extensions.length - 1]._id;
+					if (!req.query.extid) {
 						req.originalUrl += `&extid=${extensionDocument._id}`;
 					}
 					io.of("/dashboard/other/extensions").emit("update", svr.id);
@@ -3628,7 +3628,7 @@ module.exports = (bot, db, auth, config, winston) => {
 				}
 			}, (err, result) => {
 				let messageCount = 0;
-				if(!err && result) {
+				if (!err && result) {
 					messageCount = result[0].total;
 				}
 				res.render("pages/maintainer.ejs", {
@@ -3670,10 +3670,10 @@ module.exports = (bot, db, auth, config, winston) => {
 				});
 			};
 
-			if(req.query.q) {
+			if (req.query.q) {
 				const query = req.query.q.toLowerCase();
 				const data = bot.guilds.filter(svr => {
-					return svr.name.toLowerCase().indexOf(query)>-1 || svr.id==query || svr.members.get(svr.ownerID).user.username.toLowerCase().indexOf(query)>-1;
+					return svr.name.toLowerCase().indexOf(query) > -1 || svr.id == query || svr.members.get(svr.ownerID).user.username.toLowerCase().indexOf(query) > -1;
 				}).map(svr => {
 					return {
 						name: svr.name,
@@ -3683,11 +3683,11 @@ module.exports = (bot, db, auth, config, winston) => {
 					};
 				});
 
-				if(req.query.message) {
+				if (req.query.message) {
 					const svr = bot.guilds.get(data[parseInt(req.query.i)].id);
-					if(svr) {
+					if (svr) {
 						const ch = svr.channels.get(req.query.chid);
-						if(ch) {
+						if (ch) {
 							ch.createMessage(req.query.message);
 							req.query.q = "";
 							renderPage();
@@ -3697,9 +3697,9 @@ module.exports = (bot, db, auth, config, winston) => {
 					} else {
 						res.redirect("/error");
 					}
-				} else if(req.query.leave!=undefined) {
+				} else if (req.query.leave != undefined) {
 					const svr = bot.guilds.get(data[parseInt(req.query.i)].id);
-					if(svr) {
+					if (svr) {
 						bot.leaveGuild(svr.id).then(() => {
 							req.query.q = "";
 							renderPage();
@@ -3736,7 +3736,7 @@ module.exports = (bot, db, auth, config, winston) => {
 	});
 	app.post("/dashboard/servers/big-message", (req, res) => {
 		checkAuth(req, res, () => {
-			if(req.body.message) {
+			if (req.body.message) {
 				bot.guilds.forEach(svr => {
 					svr.defaultChannel.createMessage(req.body.message);
 				});
@@ -3771,18 +3771,18 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/global-options/blocklist").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/global-options/blocklist", (req, res) => {
 		checkAuth(req, res, consolemember => {
-			if(req.body["new-user"]) {
+			if (req.body["new-user"]) {
 				const usr = findQueryUser(req.body["new-user"], bot.users);
-				if(usr && config.global_blocklist.indexOf(usr.id)==-1 && config.maintainers.indexOf(usr.id)==-1) {
+				if (usr && config.global_blocklist.indexOf(usr.id) == -1 && config.maintainers.indexOf(usr.id) == -1) {
 					config.global_blocklist.push(usr.id);
 				}
 			} else {
-				for(let i=0; i<config.global_blocklist.length; i++) {
-					if(req.body[`block-${i}-removed`]!=null) {
+				for (let i = 0; i < config.global_blocklist.length; i++) {
+					if (req.body[`block-${i}-removed`] != null) {
 						config.global_blocklist[i] = null;
 					}
 				}
@@ -3809,27 +3809,27 @@ module.exports = (bot, db, auth, config, winston) => {
 				bot_user: {
 					status: sampleBotMember.status,
 					game: bot.getGame(sampleBotMember),
-					game_default: config.game=="default",
+					game_default: config.game == "default",
 					avatar: bot.user.avatarURL
 				}
 			});
 		});
 	});
 	io.of("/dashboard/global-options/bot-user").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/global-options/bot-user", (req, res) => {
 		checkAuth(req, res, consolemember => {
 			const updateBotUser = avatar => {
 				bot.editSelf({
 					avatar: avatar ? (`data:image/jpeg;base64,${avatar}`) : null,
-					username: req.body.username!=bot.user.username ? req.body.username : null
+					username: req.body.username != bot.user.username ? req.body.username : null
 				}).then(() => {
 					let game = {
 						name: req.body.game
 					};
 					config.game = req.body.game;
-					if(req.body.game=="awesomebot.xyz" || req.body["game-default"]!=null) {
+					if (req.body.game == "awesomebot.xyz" || req.body["game-default"] != null) {
 						config.game = "default";
 						game = {
 							name: "awesomebot.xyz",
@@ -3841,7 +3841,7 @@ module.exports = (bot, db, auth, config, winston) => {
 				});
 			};
 
-			if(req.body.avatar) {
+			if (req.body.avatar) {
 				base64.encode(req.body.avatar, {
 					string: true
 				}, (err, data) => {
@@ -3874,7 +3874,7 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/global-options/homepage").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/global-options/homepage", (req, res) => {
 		checkAuth(req, res, consolemember => {
@@ -3910,24 +3910,24 @@ module.exports = (bot, db, auth, config, winston) => {
 						};
 					})
 				},
-				showRemove: consolemember.id==config.maintainers[0]
+				showRemove: consolemember.id == config.maintainers[0]
 			});
 		});
 	});
 	io.of("/dashboard/global-options/maintainers").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/global-options/maintainers", (req, res) => {
 		checkAuth(req, res, consolemember => {
-			if(req.body["new-user"]) {
+			if (req.body["new-user"]) {
 				const usr = findQueryUser(req.body["new-user"], bot.users);
-				if(usr && config.maintainers.indexOf(usr.id)==-1) {
+				if (usr && config.maintainers.indexOf(usr.id) == -1) {
 					config.maintainers.push(usr.id);
 				}
 			} else {
-				if(consolemember.id==config.maintainers[0]) {
-					for(let i=0; i<config.maintainers.length; i++) {
-						if(req.body[`maintainer-${i}-removed`]!=null) {
+				if (consolemember.id == config.maintainers[0]) {
+					for (let i = 0; i < config.maintainers.length; i++) {
+						if (req.body[`maintainer-${i}-removed`] != null) {
 							config.maintainers[i] = null;
 						}
 					}
@@ -3981,19 +3981,19 @@ module.exports = (bot, db, auth, config, winston) => {
 		});
 	});
 	io.of("/dashboard/global-options/wiki-contributors").on("connection", socket => {
-		socket.on("disconnect", () => {});
+		socket.on("disconnect", () => { });
 	});
 	app.post("/dashboard/global-options/wiki-contributors", (req, res) => {
 		checkAuth(req, res, consolemember => {
-			if(req.body["new-user"]) {
+			if (req.body["new-user"]) {
 				const usr = findQueryUser(req.body["new-user"], bot.users);
-				if(usr && config.wiki_contributors.indexOf(usr.id)==-1) {
+				if (usr && config.wiki_contributors.indexOf(usr.id) == -1) {
 					config.wiki_contributors.push(usr.id);
 				}
 			} else {
-				if(config.maintainers.includes(consolemember.id)) {
-					for(let i=0; i<config.wiki_contributors.length; i++) {
-						if(req.body[`contributor-${i}-removed`]!=null) {
+				if (config.maintainers.includes(consolemember.id)) {
+					for (let i = 0; i < config.wiki_contributors.length; i++) {
+						if (req.body[`contributor-${i}-removed`] != null) {
 							config.wiki_contributors[i] = null;
 						}
 					}
@@ -4024,8 +4024,8 @@ module.exports = (bot, db, auth, config, winston) => {
 
 Object.assign(Array.prototype, {
 	spliceNullElements() {
-		for(let i=0; i<this.length; i++) {
-			if(this[i]==null) {
+		for (let i = 0; i < this.length; i++) {
+			if (this[i] == null) {
 				this.splice(i, 1);
 				i--;
 			}

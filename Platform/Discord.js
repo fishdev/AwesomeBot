@@ -24,16 +24,16 @@ module.exports = (db, auth, config) => {
 
 	// Sequentially send an array
 	bot.sendArray = (ch, arr, i, options, callback) => {
-		if(i==null) {
+		if (i == null) {
 			i = 0;
 		}
-		if(i>=arr.length) {
-			if(callback) {
+		if (i >= arr.length) {
+			if (callback) {
 				callback();
 			}
 		} else {
 			let messageContent = arr[i];
-			if(options) {
+			if (options) {
 				messageContent = options;
 				messageContent.content = arr[i];
 			}
@@ -46,13 +46,13 @@ module.exports = (db, auth, config) => {
 	// Setup a message listener for a user in a channel ()
 	bot.messageListeners = {};
 	bot.awaitMessage = (chid, usrid, filter, callback) => {
-		if(!callback) {
+		if (!callback) {
 			callback = filter;
 			filter = () => {
 				return true;
 			};
 		}
-		if(!bot.messageListeners[chid]) {
+		if (!bot.messageListeners[chid]) {
 			bot.messageListeners[chid] = {};
 		}
 		bot.messageListeners[chid][usrid] = {
@@ -60,9 +60,9 @@ module.exports = (db, auth, config) => {
 			filter
 		};
 		setTimeout(() => {
-			if(bot.messageListeners[chid] && bot.messageListeners[chid][usrid]) {
+			if (bot.messageListeners[chid] && bot.messageListeners[chid][usrid]) {
 				delete bot.messageListeners[chid][usrid];
-				if(Object.keys(bot.messageListeners[chid])==0) {
+				if (Object.keys(bot.messageListeners[chid]) == 0) {
 					delete bot.messageListeners[chid];
 				}
 			}
@@ -70,30 +70,30 @@ module.exports = (db, auth, config) => {
 	};
 	bot.removeMessageListener = (chid, usrid) => {
 		delete bot.messageListeners[chid][usrid];
-		if(Object.keys(bot.messageListeners[chid])==0) {
+		if (Object.keys(bot.messageListeners[chid]) == 0) {
 			delete bot.messageListeners[chid];
 		}
 	};
 
 	// Get the command prefix for a server
 	bot.getCommandPrefix = (svr, serverDocument) => {
-		return serverDocument.config.command_prefix=="@mention" ? (`@${svr.members.get(bot.user.id).nick || bot.user.username} `) : serverDocument.config.command_prefix;
+		return serverDocument.config.command_prefix == "@mention" ? (`@${svr.members.get(bot.user.id).nick || bot.user.username} `) : serverDocument.config.command_prefix;
 	};
 
 	// Checks if message contains a command tag, returning the command and post-text
 	bot.checkCommandTag = (message, serverDocument) => {
 		message = message.trim();
 		let cmdstr;
-		if(serverDocument.config.command_prefix=="@mention" && message.indexOf(bot.user.mention)==0) {
-			cmdstr = message.substring(bot.user.mention.length+1);
-		} else if(serverDocument.config.command_prefix=="@mention" && message.indexOf(`<@!${bot.user.id}>`)==0) {
-			cmdstr = message.substring((`<@!${bot.user.id}>`).length+1);
-		} else if(message.indexOf(serverDocument.config.command_prefix)==0) {
+		if (serverDocument.config.command_prefix == "@mention" && message.indexOf(bot.user.mention) == 0) {
+			cmdstr = message.substring(bot.user.mention.length + 1);
+		} else if (serverDocument.config.command_prefix == "@mention" && message.indexOf(`<@!${bot.user.id}>`) == 0) {
+			cmdstr = message.substring((`<@!${bot.user.id}>`).length + 1);
+		} else if (message.indexOf(serverDocument.config.command_prefix) == 0) {
 			cmdstr = message.substring(serverDocument.config.command_prefix.length);
 		} else {
 			return;
 		}
-		if(cmdstr.indexOf(" ")==-1) {
+		if (cmdstr.indexOf(" ") == -1) {
 			return {
 				command: cmdstr.toLowerCase(),
 				suffix: ""
@@ -101,7 +101,7 @@ module.exports = (db, auth, config) => {
 		} else {
 			return {
 				command: cmdstr.substring(0, cmdstr.indexOf(" ")).toLowerCase(),
-				suffix: cmdstr.substring(cmdstr.indexOf(" ")+1).trim()
+				suffix: cmdstr.substring(cmdstr.indexOf(" ") + 1).trim()
 			};
 		}
 	};
@@ -111,7 +111,7 @@ module.exports = (db, auth, config) => {
 		// Cleans a string (strip markdown, prevent @everyone or @here)
 		const cleanName = str => {
 			str = removeMd(str).replaceAll("_", "\\_").replaceAll("*", "\\*").replaceAll("`", "\\`");
-			return ((str.indexOf("everyone")==0 || str.indexOf("here")==0) ? (`\u200b${str}`) : str).replaceAll("@everyone", "@\u200beveryone").replaceAll("@here", "@\u200bhere").replaceAll("<@", "<@\u200b");
+			return ((str.indexOf("everyone") == 0 || str.indexOf("here") == 0) ? (`\u200b${str}`) : str).replaceAll("@everyone", "@\u200beveryone").replaceAll("@here", "@\u200bhere").replaceAll("<@", "<@\u200b");
 		};
 
 		return cleanName(((serverDocument.config.name_display.use_nick && !ignoreNick) ? (member.nick || member.user.username) : member.user.username) + (serverDocument.config.name_display.show_discriminator ? (`#${member.user.discriminator}`) : ""));
@@ -123,7 +123,7 @@ module.exports = (db, auth, config) => {
 			privateCommandModules[command] = reload(`./../Commands/PM/${command}.js`);
 			return;
 		}
-		catch(err) {
+		catch (err) {
 			return err;
 		}
 	};
@@ -133,14 +133,14 @@ module.exports = (db, auth, config) => {
 			commandModules[command] = reload(`./../Commands/Public/${command}.js`);
 			return;
 		}
-		catch(err) {
+		catch (err) {
 			return err;
 		}
 	};
 
 	bot.reloadAllPrivateCommands = () => {
 		let command_keys = Object.keys(privateCommandModules);
-		if(!command_keys.length) {
+		if (!command_keys.length) {
 			command_keys = Object.keys(commands.pm);
 			command_keys.forEach(command_key => {
 				bot.reloadPrivateCommand(command_key);
@@ -150,7 +150,7 @@ module.exports = (db, auth, config) => {
 
 	bot.reloadAllPublicCommands = () => {
 		let command_keys = Object.keys(commandModules);
-		if(!command_keys.length) {
+		if (!command_keys.length) {
 			command_keys = Object.keys(commands.public);
 			command_keys.forEach(command => {
 				bot.reloadPublicCommand(command);
@@ -191,30 +191,30 @@ module.exports = (db, auth, config) => {
 	bot.memberSearch = (str, svr) => {
 		let member;
 		str = str.trim();
-		if(str.indexOf("<@!")==0) {
-			member = svr.members.get(str.substring(3, str.length-1));
-		} else if(str.indexOf("<@")==0) {
-			member = svr.members.get(str.substring(2, str.length-1));
-		} else if(!isNaN(str)) {
+		if (str.indexOf("<@!") == 0) {
+			member = svr.members.get(str.substring(3, str.length - 1));
+		} else if (str.indexOf("<@") == 0) {
+			member = svr.members.get(str.substring(2, str.length - 1));
+		} else if (!isNaN(str)) {
 			member = svr.members.get(str);
 		} else {
-			if(str.indexOf("@")==0) {
+			if (str.indexOf("@") == 0) {
 				str = str.slice(1);
 			}
-			if(str.lastIndexOf("#")==str.length-5 && !isNaN(str.substring(str.lastIndexOf("#")+1))) {
+			if (str.lastIndexOf("#") == str.length - 5 && !isNaN(str.substring(str.lastIndexOf("#") + 1))) {
 				member = svr.members.filter(member => {
-					return member.user.username==str.substring(0, str.lastIndexOf("#"));
+					return member.user.username == str.substring(0, str.lastIndexOf("#"));
 				}).find(member => {
-					return member.user.discriminator==str.substring(str.lastIndexOf("#")+1);
+					return member.user.discriminator == str.substring(str.lastIndexOf("#") + 1);
 				});
 			} else {
 				member = svr.members.find(member => {
-					return member.user.username==str;
+					return member.user.username == str;
 				});
 			}
-			if(!member) {
+			if (!member) {
 				member = svr.members.find(member => {
-					return member.nick && member.nick==str;
+					return member.nick && member.nick == str;
 				});
 			}
 		}
@@ -229,28 +229,28 @@ module.exports = (db, auth, config) => {
 		};
 
 		svr = bot.guilds.find(svr => {
-			return svr.name==str;
+			return svr.name == str;
 		});
-		if(checkServer(svr)) {
+		if (checkServer(svr)) {
 			return svr;
 		}
 
 		svr = bot.guilds.get(str);
-		if(checkServer(svr)) {
+		if (checkServer(svr)) {
 			return svr;
 		}
 
 		svr = bot.guilds.find(svr => {
-			return str.toLowerCase()==svr.name.toLowerCase();
+			return str.toLowerCase() == svr.name.toLowerCase();
 		});
-		if(checkServer(svr)) {
+		if (checkServer(svr)) {
 			return svr;
 		}
 
 		const svrnick = userDocument.server_nicks.id(str.toLowerCase());
-		if(svrnick) {
+		if (svrnick) {
 			svr = bot.guilds.get(svrnick.server_id);
-			if(checkServer(svr)) {
+			if (checkServer(svr)) {
 				return svr;
 			}
 		}
@@ -260,15 +260,15 @@ module.exports = (db, auth, config) => {
 	// Finds a channel (by name or ID) in a server
 	bot.channelSearch = (str, svr) => {
 		str = str.toLowerCase().replaceAll(" ", "-");
-		if(str.startsWith("#") && str.length>1) {
+		if (str.startsWith("#") && str.length > 1) {
 			str = str.slice(1);
-		} else if(str.startsWith("<#")) {
+		} else if (str.startsWith("<#")) {
 			str = str.slice(2).slice(0, -1);
 		}
 		let ch = svr.channels.get(str);
-		if(!ch) {
+		if (!ch) {
 			ch = svr.channels.find(channel => {
-				return channel.name==str;
+				return channel.name == str;
 			});
 		}
 		return ch;
@@ -276,17 +276,17 @@ module.exports = (db, auth, config) => {
 
 	// Finds a member (by name or ID) in a server
 	bot.roleSearch = (str, svr) => {
-		if(str.startsWith("<@&")) {
+		if (str.startsWith("<@&")) {
 			str = str.slice(3).slice(0, -1);
 		}
 		let role = svr.roles.get(str);
-		if(!role) {
+		if (!role) {
 			role = svr.roles.find(r => {
-				return r.name==str;
+				return r.name == str;
 			});
-			if(!role) {
+			if (!role) {
 				role = svr.roles.find(r => {
-					return r.name.toLowerCase()==str.toLowerCase();
+					return r.name.toLowerCase() == str.toLowerCase();
 				});
 			}
 		}
@@ -302,9 +302,9 @@ module.exports = (db, auth, config) => {
 
 	// Gets the game a member is playing
 	bot.getGame = member => {
-		if(typeof(member.game)=="string") {
+		if (typeof (member.game) == "string") {
 			return member.game;
-		} else if(member.game && member.game.name) {
+		} else if (member.game && member.game.name) {
 			return member.game.name;
 		}
 		return "";
@@ -312,56 +312,56 @@ module.exports = (db, auth, config) => {
 
 	// Check if a user has leveled up a rank
 	bot.checkRank = (winston, svr, serverDocument, member, memberDocument, override) => {
-		if(member && member.id!=bot.user.id && !member.user.bot && svr) {
+		if (member && member.id != bot.user.id && !member.user.bot && svr) {
 			const currentRankscore = memberDocument.rank_score + (override ? 0 : computeRankScore(memberDocument.messages, memberDocument.voice));
-			for(let i=0; i<serverDocument.config.ranks_list.length; i++) {
-				if(currentRankscore<=serverDocument.config.ranks_list[i].max_score || i==serverDocument.config.ranks_list.length-1) {
-					if(memberDocument.rank!=serverDocument.config.ranks_list[i]._id && !override) {
+			for (let i = 0; i < serverDocument.config.ranks_list.length; i++) {
+				if (currentRankscore <= serverDocument.config.ranks_list[i].max_score || i == serverDocument.config.ranks_list.length - 1) {
+					if (memberDocument.rank != serverDocument.config.ranks_list[i]._id && !override) {
 						memberDocument.rank = serverDocument.config.ranks_list[i]._id;
-						if(serverDocument.config.ranks_list) {
-							if(serverDocument.config.moderation.isEnabled && serverDocument.config.moderation.status_messages.member_rank_updated_message.isEnabled) {
+						if (serverDocument.config.ranks_list) {
+							if (serverDocument.config.moderation.isEnabled && serverDocument.config.moderation.status_messages.member_rank_updated_message.isEnabled) {
 								// Send member_rank_updated_message if necessary
-								if(serverDocument.config.moderation.status_messages.member_rank_updated_message.type=="message") {
+								if (serverDocument.config.moderation.status_messages.member_rank_updated_message.type == "message") {
 									const ch = svr.channels.get(serverDocument.config.moderation.status_messages.member_rank_updated_message.channel_id);
-									if(ch) {
+									if (ch) {
 										const channelDocument = serverDocument.channels.id(ch.id);
-										if(!channelDocument || channelDocument.bot_enabled) {
+										if (!channelDocument || channelDocument.bot_enabled) {
 											ch.createMessage(`Congratulations ${member.mention}, you've leveled up to **${memberDocument.rank}** 🏆`);
 										}
 									}
-								} else if(serverDocument.config.moderation.status_messages.member_rank_updated_message.type=="pm") {
+								} else if (serverDocument.config.moderation.status_messages.member_rank_updated_message.type == "pm") {
 									member.user.getDMChannel().then(ch => {
 										ch.createMessage(`Congratulations, you've leveled up to **${memberDocument.rank}** on ${svr.name} 🏆`
-											);
+										);
 									});
 								}
 							}
 
 							// Add 100 AwesomePoints as reward
-							if(serverDocument.config.commands.points.isEnabled && svr.members.size>2) {
-								db.users.findOrCreate({_id: member.id}, (err, userDocument) => {
-									if(!err && userDocument) {
+							if (serverDocument.config.commands.points.isEnabled && svr.members.size > 2) {
+								db.users.findOrCreate({ _id: member.id }, (err, userDocument) => {
+									if (!err && userDocument) {
 										userDocument.points += 100;
 										userDocument.save(err => {
-											if(err) {
-												winston.error("Failed to save user data for points", {usrid: member.id}, err);
+											if (err) {
+												winston.error("Failed to save user data for points", { usrid: member.id }, err);
 											}
 										});
 									} else {
-										winston.error("Failed to find or create user data for points", {usrid: member.id}, err);
+										winston.error("Failed to find or create user data for points", { usrid: member.id }, err);
 									}
 								});
 							}
 
 							// Assign new rank role if necessary
-							if(serverDocument.config.ranks_list[i].role_id) {
+							if (serverDocument.config.ranks_list[i].role_id) {
 								const role = svr.roles.get(serverDocument.config.ranks_list[i].role_id);
-								if(role) {
+								if (role) {
 									member.roles.push(role.id);
 									member.edit({
 										roles: member.roles
 									}).then().catch(err => {
-										winston.error(`Failed to add member '${member.user.username} to role '${role.name}' on server '${svr.name}' for rank level up`, {svrid: svr.id, usrid: member.id, roleid: role.id}, err);
+										winston.error(`Failed to add member '${member.user.username} to role '${role.name}' on server '${svr.name}' for rank level up`, { svrid: svr.id, usrid: member.id, roleid: role.id }, err);
 									});
 								}
 							}
@@ -377,11 +377,11 @@ module.exports = (db, auth, config) => {
 	// Handle a spam or filter violation on a server
 	bot.handleViolation = (winston, svr, serverDocument, ch, member, userDocument, memberDocument, userMessage, adminMessage, strikeMessage, action, roleid) => {
 		// Deduct 50 AwesomePoints if necessary
-		if(serverDocument.config.commands.points.isEnabled) {
+		if (serverDocument.config.commands.points.isEnabled) {
 			userDocument.points -= 50;
 			userDocument.save(err => {
-				if(err) {
-					winston.error("Failed to save user data for points", {usrid: member.id}, err);
+				if (err) {
+					winston.error("Failed to save user data for points", { usrid: member.id }, err);
 				}
 			});
 		}
@@ -393,21 +393,21 @@ module.exports = (db, auth, config) => {
 		});
 
 		// Assign role if necessary
-		if(roleid) {
+		if (roleid) {
 			const role = svr.roles.get(roleid);
-			if(role) {
+			if (role) {
 				member.roles.push(role.id);
 				member.edit({
 					roles: member.roles
 				}).then().catch(err => {
-					winston.error(`Failed to add member '${member.user.username}'' to role '${role.name}'' on server '${svr.name}'`, {svrid: svr.id, usrid: member.id, roleid: role.id}, err);
+					winston.error(`Failed to add member '${member.user.username}'' to role '${role.name}'' on server '${svr.name}'`, { svrid: svr.id, usrid: member.id, roleid: role.id }, err);
 				});
 			}
 		}
 
 		// Block member
 		const blockMember = () => {
-			if(serverDocument.config.blocked.indexOf(member.id)==-1) {
+			if (serverDocument.config.blocked.indexOf(member.id) == -1) {
 				serverDocument.config.blocked.push(member.id);
 			}
 			member.user.getDMChannel().then(ch => {
@@ -418,13 +418,13 @@ module.exports = (db, auth, config) => {
 		};
 
 		// Perform action, message admins, and message user
-		switch(action) {
+		switch (action) {
 			case "block":
 				blockMember();
 				break;
 			case "mute":
 				bot.muteMember(ch, member).then(err => {
-					if(err) {
+					if (err) {
 						blockMember();
 					} else {
 						member.user.getDMChannel().then(ch => {
@@ -465,30 +465,30 @@ module.exports = (db, auth, config) => {
 
 		// Save serverDocument
 		serverDocument.save(err => {
-			if(err) {
-				winston.error("Failed to save server data for violation", {svrid: svr.id, chid: ch.id, usrid: member.id}, err);
+			if (err) {
+				winston.error("Failed to save server data for violation", { svrid: svr.id, chid: ch.id, usrid: member.id }, err);
 			}
 		});
 	};
 
 	// Check if user has a bot admin role on a server
 	bot.getUserBotAdmin = (svr, serverDocument, member) => {
-		if(!svr || !serverDocument || !member) {
+		if (!svr || !serverDocument || !member) {
 			return -1;
 		}
-		if(config.maintainers.indexOf(member.id)>-1) {
+		if (config.maintainers.indexOf(member.id) > -1) {
 			return 4;
 		}
-		if(svr.ownerID==member.id) {
+		if (svr.ownerID == member.id) {
 			return 3;
 		}
 		let adminLevel = 0;
-		for(let i=0; i<member.roles.length; i++) {
+		for (let i = 0; i < member.roles.length; i++) {
 			const adminDocument = serverDocument.config.admins.id(member.roles[i]);
-			if(adminDocument && adminDocument.level>adminLevel) {
+			if (adminDocument && adminDocument.level > adminLevel) {
 				adminLevel = adminDocument.level;
 			}
-			if(adminLevel>=3) {
+			if (adminLevel >= 3) {
 				break;
 			}
 		}
@@ -498,7 +498,7 @@ module.exports = (db, auth, config) => {
 	// Message the bot admins for a server
 	bot.messageBotAdmins = (svr, serverDocument, message) => {
 		svr.members.forEach(member => {
-			if(bot.getUserBotAdmin(svr, serverDocument, member)>=2 && member.id!=bot.user.id && !member.user.bot) {
+			if (bot.getUserBotAdmin(svr, serverDocument, member) >= 2 && member.id != bot.user.id && !member.user.bot) {
 				member.user.getDMChannel().then(ch => {
 					ch.createMessage(message);
 				});
@@ -513,14 +513,14 @@ module.exports = (db, auth, config) => {
 
 	// Mute a member of a server in a channel
 	bot.muteMember = (ch, member, callback) => {
-		if(!bot.isMuted(ch, member) && ch.type==0) {
+		if (!bot.isMuted(ch, member) && ch.type == 0) {
 			ch.editPermission(member.id, null, 2048, "member").then(callback);
 		}
 	};
 
 	// Unmute a member of a server in a channel
 	bot.unmuteMember = (ch, member, callback) => {
-		if(bot.isMuted(ch, member) && ch.type==0) {
+		if (bot.isMuted(ch, member) && ch.type == 0) {
 			ch.editPermission(member.id, 2048, null, "member").then(callback);
 		}
 	};
